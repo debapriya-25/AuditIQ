@@ -43,3 +43,12 @@ node_modules
 .next
 .env
 .env.local
+
+node_modules/
+.next/
+.env
+.env.local
+.vercel/
+coverage/
+*.log
+.env.local
