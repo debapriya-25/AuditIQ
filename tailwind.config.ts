@@ -38,9 +38,9 @@ const config: Config = {
         'body-md': ['16px', { lineHeight: '1.65', letterSpacing: '0' }],
         'body-sm': ['14px', { lineHeight: '1.6', letterSpacing: '0.01em' }],
         label: ['12px', { lineHeight: '1.5', letterSpacing: '0.06em', fontWeight: '500' }],
-        'mono-lg': ['20px', { lineHeight: '1.4', fontFamily: 'var(--font-jetbrains)' }],
-        'mono-md': ['16px', { lineHeight: '1.4', fontFamily: 'var(--font-jetbrains)' }],
-        'mono-sm': ['13px', { lineHeight: '1.4', fontFamily: 'var(--font-jetbrains)' }],
+        'mono-lg': ['20px', { lineHeight: '1.4' }],
+        'mono-md': ['16px', { lineHeight: '1.4' }],
+        'mono-sm': ['13px', { lineHeight: '1.4' }],
       },
       boxShadow: {
         'glow-signal': '0 0 20px rgba(59, 130, 246, 0.4)',
