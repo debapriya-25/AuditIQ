@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Base Palette */
+  --color-void:        #080C14;
+  --color-abyss:       #0D1320;
+  --color-depth:       #141B2D;
+  --color-surface:     #1C2540;
+  --color-overlay:     #232E4F;
+
+  /* Glass Layer Colors */
+  --glass-bg:          rgba(20, 27, 45, 0.65);
+  --glass-border:      rgba(120, 160, 255, 0.12);
+  --glass-highlight:   rgba(255, 255, 255, 0.08);
+  --glass-blur:        12px;
+
+  /* Accent Palette */
+  --color-signal:      #3B82F6;
+  --color-emerald:     #10B981;
+  --color-ember:       #F59E0B;
+  --color-crimson:     #EF4444;
+  --color-violet:      #8B5CF6;
+  --color-ice:         #BAE6FD;
+
+  /* Typography */
+  --text-primary:      #F0F4FF;
+  --text-secondary:    #8B99BE;
+  --text-muted:        #4A5568;
+  --text-accent:       #93C5FD;
+}
+
+body {
+  background-color: var(--color-void);
+  background-image: radial-gradient(circle at top, var(--color-abyss) 0%, var(--color-void) 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+@layer components {
+  .shimmer-bar {
+    background: linear-gradient(
+      90deg,
+      var(--color-surface) 25%,
+      var(--color-overlay) 50%,
+      var(--color-surface) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+  }
+}
