@@ -1,10 +1,10 @@
-import { ProviderRuleEngine, UserToolInput, GlobalInputs, ToolAuditResult } from '../types';
+import { ProviderRuleEngine, UserToolInput, GlobalInputs, ToolAuditFindings } from '../types';
 import { PRICING } from '../constants/pricing';
 import { createAuditResult, calculateSpend } from '../utils';
 
 export const v0Provider: ProviderRuleEngine = {
   toolId: 'v0',
-  evaluate(input: UserToolInput, global: GlobalInputs): ToolAuditResult {
+  evaluate(input: UserToolInput, global: GlobalInputs): ToolAuditFindings {
     const planLower = input.plan.toLowerCase();
     
     let planPrice = 0;

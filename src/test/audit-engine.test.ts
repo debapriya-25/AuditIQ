@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { runAudit } from '../lib/audit/engine';
-import { AuditInput, ToolAuditResult } from '../lib/audit/types';
-import { PRICING } from '../lib/audit/constants/pricing';
+import { runAuditEngine } from '../lib/audit/engine';
+import { AuditInput, ToolAuditFindings } from '../lib/audit/types';
 
 describe('Audit Engine', () => {
 
@@ -13,7 +12,7 @@ describe('Audit Engine', () => {
       global: { teamSize: 2, useCase: 'coding' }
     };
 
-    const result = runAudit(input);
+    const result = runAuditEngine(input);
     expect(result.toolResults.length).toBe(1);
     
     const copilotResult = result.toolResults[0];
@@ -21,8 +20,8 @@ describe('Audit Engine', () => {
     expect(copilotResult.status).toBe('overspending');
     
     // 2 seats * 19 (business) = 38. 2 seats * 10 (individual) = 20. Savings = 18.
-    expect(copilotResult.savingsPerMonth).toBe(18);
-    expect(copilotResult.recommendedAction).toContain('Downgrade to Individual');
+    expect(copilotResult.savings.savingsPerMonth).toBe('18.00');
+    expect(copilotResult.recommendation.recommendedAction).toContain('Downgrade to Individual');
   });
 
   it('2. No false savings generated for a user already on optimal plan', () => {
@@ -33,11 +32,11 @@ describe('Audit Engine', () => {
       global: { teamSize: 3, useCase: 'coding' }
     };
 
-    const result = runAudit(input);
+    const result = runAuditEngine(input);
     const cursorResult = result.toolResults[0];
     if (!cursorResult) throw new Error('Result missing');
     expect(cursorResult.status).toBe('optimal');
-    expect(cursorResult.savingsPerMonth).toBe(0);
+    expect(cursorResult.savings.savingsPerMonth).toBe('0.00');
   });
 
   it('3. Use-case-specific alternative surfacing (coding use case + Claude Team)', () => {
@@ -48,11 +47,11 @@ describe('Audit Engine', () => {
       global: { teamSize: 5, useCase: 'coding' }
     };
 
-    const result = runAudit(input);
+    const result = runAuditEngine(input);
     const claudeResult = result.toolResults[0];
     if (!claudeResult) throw new Error('Result missing');
     expect(claudeResult.status).toBe('switch_recommended');
-    expect(claudeResult.recommendedAction).toContain('Switch to Cursor Pro or Windsurf');
+    expect(claudeResult.recommendation.recommendedAction).toContain('Switch to Cursor Pro or Windsurf');
   });
 
   it('4. API monthly spend above a threshold flags as "review usage" rather than specific plan switch', () => {
@@ -63,11 +62,11 @@ describe('Audit Engine', () => {
       global: { teamSize: 10, useCase: 'mixed' }
     };
 
-    const result = runAudit(input);
+    const result = runAuditEngine(input);
     const anthropicResult = result.toolResults[0];
     if (!anthropicResult) throw new Error('Result missing');
     expect(anthropicResult.status).toBe('overspending');
-    expect(anthropicResult.recommendedAction).toContain('Review API usage');
+    expect(anthropicResult.recommendation.recommendedAction).toContain('Review API usage');
   });
 
   it('5. Audit result total equals sum of per-tool savings', () => {
@@ -80,9 +79,9 @@ describe('Audit Engine', () => {
       global: { teamSize: 2, useCase: 'coding' }
     };
 
-    const result = runAudit(input);
-    expect(result.totalSavingsMonthly).toBe(18 + 40 + 0);
-    expect(result.totalSavingsAnnually).toBe(58 * 12);
+    const result = runAuditEngine(input);
+    expect(result.totalSavingsMonthly).toBe('58.00'); // 18 + 40 + 0
+    expect(result.totalSavingsAnnually).toBe((58 * 12).toFixed(2));
   });
 
   it('6. Edge case: 0 seats entered doesn\'t crash; 1 seat on a "per-seat" plan handled correctly', () => {
@@ -94,15 +93,15 @@ describe('Audit Engine', () => {
       global: { teamSize: 1, useCase: 'coding' }
     };
 
-    const result = runAudit(input);
+    const result = runAuditEngine(input);
     expect(result.toolResults.length).toBe(2);
     
-    const cursorResult = result.toolResults.find(t => t.toolId === 'cursor');
+    const cursorResult = result.toolResults.find((t: ToolAuditFindings) => t.toolId === 'cursor');
     expect(cursorResult?.status).toBe('optimal'); // Math.max(1, 0) logic in calculateSpend handles 0
     
-    const copilotResult = result.toolResults.find(t => t.toolId === 'github_copilot');
+    const copilotResult = result.toolResults.find((t: ToolAuditFindings) => t.toolId === 'github_copilot');
     expect(copilotResult?.status).toBe('overspending');
-    expect(copilotResult?.savingsPerMonth).toBe(9); // 19 - 10
+    expect(copilotResult?.savings.savingsPerMonth).toBe('9.00'); // 19 - 10
   });
 
 });

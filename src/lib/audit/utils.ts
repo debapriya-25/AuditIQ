@@ -1,20 +1,32 @@
-import { ToolAuditResult, AuditStatus } from './types';
+import { ToolAuditFindings, AuditStatus, ToolId } from './types';
+import { calculator } from './calculator';
 
 export function createAuditResult(
-  toolId: any,
+  toolId: ToolId,
   status: AuditStatus,
   currentMonthlySpend: number,
   savingsPerMonth: number,
   recommendedAction: string,
   reason: string
-): ToolAuditResult {
+): ToolAuditFindings {
+  const current = currentMonthlySpend;
+  const savings = savingsPerMonth;
+  const optimal = current - savings; // Simplified inference
+
   return {
     toolId,
     status,
-    currentMonthlySpend,
-    savingsPerMonth,
-    recommendedAction,
-    reason,
+    savings: {
+      toolId,
+      currentMonthlySpend: current.toString(),
+      optimalMonthlySpend: optimal.toString(),
+      savingsPerMonth: savings.toString(),
+    },
+    recommendation: {
+      isRedundant: false,
+      reason,
+      recommendedAction,
+    }
   };
 }
 

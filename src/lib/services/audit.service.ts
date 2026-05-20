@@ -4,6 +4,7 @@ import { customAlphabet } from 'nanoid';
 import { Decimal } from 'decimal.js';
 import { NotFoundError, InternalServerError } from '../errors';
 import { logger } from '../logger';
+import { runAuditEngine } from '../audit';
 
 // Use a safe, readable alphabet for slugs to avoid offensive words and ambiguity
 const generateSlug = customAlphabet('23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz', 10);
@@ -21,9 +22,16 @@ export const auditService = {
       const publicSlug = generateSlug();
       
       // 2. Deterministic calculation scaffolding
-      // TODO: Delegate to a dedicated, stateless calculation engine using decimal.js
-      // Temporary fallback for foundation phase
-      const totalSavingsMonthly = new Decimal('0.00').toFixed(2);
+      const engineInput = {
+        tools: payload.tools,
+        global: {
+          teamSize: payload.teamSize,
+          useCase: payload.useCase,
+        }
+      };
+      
+      const engineResult = runAuditEngine(engineInput as any); // using any for enum mismatch bridging
+      const totalSavingsMonthly = engineResult.totalSavingsMonthly;
 
       // 3. Persist to repository boundary
       const audit = await auditRepository.createAudit({

@@ -1,9 +1,9 @@
-import { ProviderRuleEngine, UserToolInput, GlobalInputs, ToolAuditResult } from '../types';
+import { ProviderRuleEngine, UserToolInput, GlobalInputs, ToolAuditFindings } from '../types';
 import { createAuditResult } from '../utils';
 
 export const anthropicApiProvider: ProviderRuleEngine = {
   toolId: 'anthropic_api',
-  evaluate(input: UserToolInput, global: GlobalInputs): ToolAuditResult {
+  evaluate(input: UserToolInput, global: GlobalInputs): ToolAuditFindings {
     const currentSpend = input.monthlySpend;
 
     if (currentSpend > 200) {

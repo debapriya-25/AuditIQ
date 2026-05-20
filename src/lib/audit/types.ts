@@ -1,4 +1,4 @@
-export type UseCase = 'coding' | 'writing' | 'data analysis' | 'research' | 'mixed';
+export type UseCase = 'coding' | 'writing' | 'data analysis' | 'research' | 'mixed' | 'data_analysis';
 
 export type ToolId = 
   | 'cursor'
@@ -11,11 +11,13 @@ export type ToolId =
   | 'windsurf'
   | 'v0';
 
+export type AuditStatus = 'optimal' | 'overspending' | 'switch_recommended';
+
 export interface UserToolInput {
   toolId: ToolId;
   plan: string;
   seats: number;
-  monthlySpend: number; // For API tools, user might provide a custom value
+  monthlySpend: number;
 }
 
 export interface GlobalInputs {
@@ -28,24 +30,40 @@ export interface AuditInput {
   global: GlobalInputs;
 }
 
-export type AuditStatus = 'optimal' | 'overspending' | 'switch_recommended';
-
-export interface ToolAuditResult {
+export interface ToolSavings {
   toolId: ToolId;
-  status: AuditStatus;
-  currentMonthlySpend: number;
-  recommendedAction: string;
-  savingsPerMonth: number;
-  reason: string;
+  currentMonthlySpend: string; // Serialized Decimal
+  optimalMonthlySpend: string; // Serialized Decimal
+  savingsPerMonth: string; // Serialized Decimal
 }
 
-export interface AuditResult {
-  toolResults: ToolAuditResult[];
-  totalSavingsMonthly: number;
-  totalSavingsAnnually: number;
+export interface ScoreOutputs {
+  optimizationScore: number;
+  confidenceScore: number;
+}
+
+export interface RecommendationMetadata {
+  isRedundant: boolean;
+  alternativeTool?: ToolId;
+  reason: string;
+  recommendedAction: string;
+}
+
+export interface ToolAuditFindings {
+  toolId: ToolId;
+  status: AuditStatus;
+  savings: ToolSavings;
+  recommendation: RecommendationMetadata;
+}
+
+export interface FinalAuditResult {
+  toolResults: ToolAuditFindings[];
+  scores: ScoreOutputs;
+  totalSavingsMonthly: string; // Serialized Decimal
+  totalSavingsAnnually: string; // Serialized Decimal
 }
 
 export interface ProviderRuleEngine {
   toolId: ToolId;
-  evaluate(input: UserToolInput, global: GlobalInputs): ToolAuditResult;
+  evaluate(input: UserToolInput, global: GlobalInputs): ToolAuditFindings;
 }
