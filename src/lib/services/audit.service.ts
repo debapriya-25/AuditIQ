@@ -4,7 +4,8 @@ import { customAlphabet } from 'nanoid';
 import { Decimal } from 'decimal.js';
 import { NotFoundError, InternalServerError } from '../errors';
 import { logger } from '../logger';
-import { runAuditEngine } from '../audit';
+import { runAuditEngine, FinalAuditResult } from '../audit';
+import { generateAuditSummary } from '../ai';
 
 // Use a safe, readable alphabet for slugs to avoid offensive words and ambiguity
 const generateSlug = customAlphabet('23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz', 10);
@@ -14,7 +15,7 @@ export const auditService = {
    * Orchestrates the creation of a new audit.
    * Ensures deterministic business logic and abstracts repository interactions.
    */
-  createAuditWorkflow: async (payload: AuditInputPayload): Promise<AuditSelect> => {
+  createAuditWorkflow: async (payload: AuditInputPayload): Promise<{ audit: AuditSelect, engineResult: FinalAuditResult, aiSummary: string }> => {
     logger.info({ useCase: payload.useCase, toolsCount: payload.tools.length }, 'Starting createAuditWorkflow');
 
     try {
@@ -41,8 +42,22 @@ export const auditService = {
         publicSlug,
       });
 
-      logger.info({ auditId: audit.id, publicSlug }, 'Audit created successfully');
-      return audit;
+      // 4. Generate AI Summary (with fallback safety built-in)
+      // Pass the generated audit record and the engine tool results
+      const aiSummary = await generateAuditSummary(audit, engineResult.toolResults);
+      
+      // Note: If you want to persist the summary, you can update the record here.
+      // We will assume it gets stored inside auditData if needed, or we just return it.
+      // Wait, the instructions say "AI summaries should be generated once during audit workflow creation and persisted."
+      // So we should persist it. Let's update the auditData to include it.
+      const updatedAuditData = { ...payload, aiSummary };
+      await auditRepository.updateAuditSummary(audit.id, updatedAuditData);
+
+      // Mutate the local object so we can return it as-is without re-fetching
+      audit.auditData = updatedAuditData;
+
+      logger.info({ auditId: audit.id, publicSlug }, 'Audit created and summarized successfully');
+      return { audit, engineResult, aiSummary };
     } catch (error) {
       logger.error({ err: error }, 'Failed to create audit workflow');
       throw new InternalServerError('An unexpected error occurred while creating the audit.');

@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { AppProviders } from '@/providers';
+import { AppShell } from '@/components/layout/AppShell';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -26,14 +28,24 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <link
+          href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap"
+          rel="stylesheet"
+        />
         <link
           href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        <AppProviders>
+          <AppShell>
+            {children}
+          </AppShell>
+        </AppProviders>
+      </body>
     </html>
   );
 }

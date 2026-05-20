@@ -23,7 +23,7 @@ const provider = new GeminiProvider(AI_CONFIG);
  */
 export async function generateAuditSummary(
   audit: AuditSelect, 
-  findings: Record<string, ToolAuditFindings>
+  findings: ToolAuditFindings[]
 ): Promise<string> {
   const startTime = Date.now();
   

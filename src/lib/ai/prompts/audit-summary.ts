@@ -4,7 +4,7 @@ import { ToolAuditFindings } from '../../audit/types';
 
 export function buildAuditSummaryPrompt(
   audit: AuditSelect, 
-  findings: Record<string, ToolAuditFindings>
+  findings: ToolAuditFindings[]
 ): string {
   // Use explicit casting as the payload was validated on ingest
   const auditData = audit.auditData as AuditInputPayload;
@@ -16,7 +16,7 @@ export function buildAuditSummaryPrompt(
     totalMonthlySpend: auditData.tools.reduce((acc, t) => acc + t.monthlySpend, 0),
     totalMonthlySavings: audit.totalSavingsMonthly,
     toolsEvaluated: auditData.tools.map(t => t.toolId),
-    keyFindings: Object.values(findings).map(f => ({
+    keyFindings: findings.map(f => ({
       tool: f.toolId,
       status: f.status,
       action: f.recommendation.recommendedAction,

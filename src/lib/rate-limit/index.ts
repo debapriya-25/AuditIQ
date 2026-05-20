@@ -37,3 +37,13 @@ export const auditRateLimit = createRateLimiter(5, '1 m', 'audit-submit');
 export async function checkRateLimit(identifier: string) {
   return await auditRateLimit.limit(identifier);
 }
+
+/**
+ * Rate limiter specifically configured for the lead capture endpoint.
+ * Stricter limit (3 requests per minute) to prevent abuse and spam.
+ */
+export const leadCaptureRateLimit = createRateLimiter(3, '1 m', 'lead-capture');
+
+export async function checkLeadCaptureRateLimit(identifier: string) {
+  return await leadCaptureRateLimit.limit(identifier);
+}

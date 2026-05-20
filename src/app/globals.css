@@ -2,43 +2,122 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ──────────────────────────────────────────────────────
+   AuditIQ Design Tokens
+   "Bloomberg Terminal meets Apple Vision Pro meets Linear"
+   ────────────────────────────────────────────────────── */
+
 :root {
-  /* Base Palette */
-  --color-void:        #080C14;
-  --color-abyss:       #0D1320;
-  --color-depth:       #141B2D;
-  --color-surface:     #1C2540;
+  /* ── Base Palette ── */
+  --color-void:        #050810;
+  --color-abyss:       #0A0F1E;
+  --color-depth:       #111827;
+  --color-surface:     #1A2235;
   --color-overlay:     #232E4F;
 
-  /* Glass Layer Colors */
-  --glass-bg:          rgba(20, 27, 45, 0.65);
-  --glass-border:      rgba(120, 160, 255, 0.12);
-  --glass-highlight:   rgba(255, 255, 255, 0.08);
-  --glass-blur:        12px;
+  /* ── Glass Layer System ── */
+  --glass-bg:          rgba(17, 24, 39, 0.60);
+  --glass-bg-elevated: rgba(26, 34, 53, 0.70);
+  --glass-border:      rgba(120, 160, 255, 0.10);
+  --glass-border-hover:rgba(120, 160, 255, 0.20);
+  --glass-highlight:   rgba(255, 255, 255, 0.06);
+  --glass-blur:        16px;
 
-  /* Accent Palette */
+  /* ── Accent Palette ── */
   --color-signal:      #3B82F6;
+  --color-signal-glow: rgba(59, 130, 246, 0.25);
   --color-emerald:     #10B981;
   --color-ember:       #F59E0B;
   --color-crimson:     #EF4444;
   --color-violet:      #8B5CF6;
   --color-ice:         #BAE6FD;
+  --color-cyan:        #22D3EE;
+  --color-fuchsia:     #D946EF;
+  --color-indigo:      #6366F1;
 
-  /* Typography */
+  /* ── Aurora Gradient Stops ── */
+  --aurora-1:          rgba(59, 130, 246, 0.15);
+  --aurora-2:          rgba(99, 102, 241, 0.12);
+  --aurora-3:          rgba(139, 92, 246, 0.10);
+  --aurora-4:          rgba(217, 70, 239, 0.08);
+  --aurora-5:          rgba(34, 211, 238, 0.06);
+
+  /* ── Savings Tier Colors ── */
+  --tier-high-bg:      rgba(16, 185, 129, 0.06);
+  --tier-high-border:  rgba(16, 185, 129, 0.25);
+  --tier-high-glow:    rgba(16, 185, 129, 0.12);
+  --tier-mid-bg:       rgba(245, 158, 11, 0.06);
+  --tier-mid-border:   rgba(245, 158, 11, 0.25);
+  --tier-low-bg:       rgba(59, 130, 246, 0.06);
+  --tier-low-border:   rgba(59, 130, 246, 0.20);
+
+  /* ── Typography ── */
   --text-primary:      #F0F4FF;
   --text-secondary:    #8B99BE;
   --text-muted:        #4A5568;
   --text-accent:       #93C5FD;
+
+  /* ── Spacing & Radius ── */
+  --radius-card:       16px;
+  --radius-btn:        10px;
+  --radius-badge:      6px;
+
+  /* ── Glow Effects ── */
+  --glow-signal:       0 0 20px rgba(59, 130, 246, 0.35), 0 0 60px rgba(59, 130, 246, 0.10);
+  --glow-emerald:      0 0 20px rgba(16, 185, 129, 0.35), 0 0 60px rgba(16, 185, 129, 0.10);
+  --glow-ember:        0 0 20px rgba(245, 158, 11, 0.35), 0 0 60px rgba(245, 158, 11, 0.10);
+  --glow-violet:       0 0 20px rgba(139, 92, 246, 0.35), 0 0 60px rgba(139, 92, 246, 0.10);
+  --glow-cyan:         0 0 20px rgba(34, 211, 238, 0.35), 0 0 60px rgba(34, 211, 238, 0.10);
+}
+
+/* ──────────────────────────────────────────────────────
+   Base Styles
+   ────────────────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background-color: var(--color-void);
-  background-image: radial-gradient(circle at top, var(--color-abyss) 0%, var(--color-void) 100%);
   color: var(--text-primary);
   min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Selection ── */
+::selection {
+  background: rgba(59, 130, 246, 0.30);
+  color: #fff;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-void);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-overlay);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-signal);
+}
+
+/* ──────────────────────────────────────────────────────
+   Component Layer
+   ────────────────────────────────────────────────────── */
+
 @layer components {
+  /* Skeleton shimmer bar */
   .shimmer-bar {
     background: linear-gradient(
       90deg,
@@ -48,5 +127,94 @@ body {
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite linear;
+  }
+
+  /* Glass surface utility */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+  }
+
+  .glass-elevated {
+    background: var(--glass-bg-elevated);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border-hover);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* Glow border effect */
+  .glow-border {
+    position: relative;
+  }
+  .glow-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      rgba(59, 130, 246, 0.3),
+      rgba(139, 92, 246, 0.2),
+      rgba(34, 211, 238, 0.1),
+      transparent 60%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   Keyframe Animations
+   ────────────────────────────────────────────────────── */
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes aurora-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-12px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 0.8; }
+}
+
+@keyframes spotlight-sweep {
+  0%   { transform: translateX(-100%) rotate(15deg); }
+  100% { transform: translateX(200%) rotate(15deg); }
+}
+
+@keyframes gradient-rotate {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
