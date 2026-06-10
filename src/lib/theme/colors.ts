@@ -1,60 +1,66 @@
 /**
- * AuditIQ centralized color system — Phase 6.1 (Premium Hero).
+ * AuditIQ centralized color system — Phase 6.1 / 6.2 (Premium Hero).
  *
- * Single source of truth for the "executive financial" palette. Consumed by:
- *   - tailwind.config.ts  → utility classes (bg-cream, text-bottle-green, …)
+ * SINGLE SOURCE OF TRUTH for the "premium financial intelligence" palette.
+ * All frontend work must consume colors from here — no hardcoded hex in
+ * components. Consumed by:
+ *   - tailwind.config.ts  → utility classes (bg-cream, text-bottle, …)
  *   - globals.css         → CSS custom properties (--aiq-*)
- *   - TS / SVG runtime    → background paths + geometry strokes (need raw hex)
+ *   - TS / SVG runtime    → background paths + geometry strokes (raw hex)
  *
- * Palette intent:
- *   Backgrounds → warm, paper-like (cream / beige / ivory)
- *   Greens      → animated + decorative + interactive surfaces
- *   Chocolate   → highlighted financial metrics only
- *   Ink         → derived dark-brown body text (WCAG AA on cream)
- *
- * Hard rules (see Phase 6.1 brief): never bright blue, never neon.
+ * Hard rules: no bright blue, no neon, no glows, no purple, no cyan.
  */
-export const auditiq = {
+export const palette = {
   // ── Backgrounds ──
   cream: '#FAF7F0',
   beige: '#F3EEE4',
   ivory: '#FFFDF8',
 
-  // ── Greens ──
-  sage: '#A8C3A0',
-  mint: '#BFE3C0',
+  // ── Greens (light → dark) ──
   pistachio: '#CDE7B0',
-  bottleGreen: '#1F4D36',
-  sapGreen: '#507D4F',
+  mint: '#BFE3C0',
+  sage: '#A8C3A0',
+  sap: '#507D4F',
+  bottle: '#1F4D36',
 
-  // ── Accent ──
+  // ── Accent (highlighted metrics only) ──
   chocolate: '#5C4033',
 
-  // ── Derived ink (body text) ──
+  // ── Derived ink (body text — WCAG AA on cream) ──
   ink: '#33291F',
 } as const;
 
-export type AuditIQColorKey = keyof typeof auditiq;
+export type PaletteKey = keyof typeof palette;
 
-/** Ordered green ramp used by the background-path + geometry systems. */
-export const auditiqGreens = [
-  auditiq.bottleGreen,
-  auditiq.sapGreen,
-  auditiq.sage,
-  auditiq.pistachio,
-  auditiq.mint,
+/** Ordered green ramp (light → dark) for the background-path + geometry systems. */
+export const greenRamp = [
+  palette.pistachio,
+  palette.mint,
+  palette.sage,
+  palette.sap,
+  palette.bottle,
 ] as const;
 
-/** kebab-cased map spread into Tailwind `theme.extend.colors`. */
+/**
+ * kebab-cased map spread into Tailwind `theme.extend.colors`.
+ * Includes legacy `*-green` aliases so any earlier utility classes keep working.
+ */
 export const auditiqTailwindColors = {
-  cream: auditiq.cream,
-  beige: auditiq.beige,
-  ivory: auditiq.ivory,
-  sage: auditiq.sage,
-  mint: auditiq.mint,
-  pistachio: auditiq.pistachio,
-  'bottle-green': auditiq.bottleGreen,
-  'sap-green': auditiq.sapGreen,
-  chocolate: auditiq.chocolate,
-  ink: auditiq.ink,
+  cream: palette.cream,
+  beige: palette.beige,
+  ivory: palette.ivory,
+  pistachio: palette.pistachio,
+  mint: palette.mint,
+  sage: palette.sage,
+  sap: palette.sap,
+  bottle: palette.bottle,
+  chocolate: palette.chocolate,
+  ink: palette.ink,
+  // Back-compat aliases (Phase 6.1)
+  'sap-green': palette.sap,
+  'bottle-green': palette.bottle,
 } as const;
+
+// ── Back-compat aliases (Phase 6.1 import names) ──
+export const auditiq = palette;
+export const auditiqGreens = greenRamp;

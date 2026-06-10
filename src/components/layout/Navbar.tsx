@@ -20,12 +20,12 @@ export function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="font-display font-bold text-lg text-bottle-green flex items-center gap-2">
-          <span className="text-sap-green">●</span> AuditIQ
+        <Link href="/" className="font-display font-bold text-lg text-bottle flex items-center gap-2">
+          <span className="text-sap">●</span> AuditIQ
         </Link>
         <Link
           href="/audit"
-          className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-[var(--radius-btn)] border border-bottle-green/30 text-bottle-green text-sm font-medium hover:bg-mint/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bottle-green focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+          className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-[var(--radius-btn)] border border-bottle/30 text-bottle text-sm font-medium hover:bg-mint/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bottle focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         >
           Run Your Own Audit
         </Link>

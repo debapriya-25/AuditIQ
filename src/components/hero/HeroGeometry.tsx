@@ -4,17 +4,18 @@ import { useRef, type PointerEvent } from 'react';
 import { useMotionValue, useSpring } from 'framer-motion';
 import { GeometryShape } from './GeometryShape';
 import type { GeometryType } from './geometry-shapes';
-import { auditiq } from '@/lib/theme/colors';
+import { palette } from '@/lib/theme/colors';
 
 /**
- * HeroGeometry — reusable interactive geometry layer (Phase 6.1).
+ * HeroGeometry — reusable interactive geometry layer (Phase 6.2).
  *
- * Lays out 5 wireframe polyhedra (sizes 60/100/140/180) around the savings
- * card and drives a shared, spring-smoothed pointer-proximity parallax. On
- * pointer leave the spring returns to 0, so every shape eases back to rest.
+ * Lays out 8 small wireframe polyhedra (sizes 60–180, tetrahedrons /
+ * octahedrons / diamonds / prisms / cubes — no spheres or globes) around the
+ * savings card. Shapes are static by default; a shared spring-smoothed
+ * pointer-proximity parallax adds subtle reactive depth and eases back to rest
+ * on pointer leave. Lighter shapes are hidden on mobile to keep it uncluttered.
  *
- * Replaces the old R3F `HeroScene` wireframe sphere — no Three.js here, so it
- * is light, responsive, and reduced-motion friendly.
+ * Replaces the old R3F `HeroScene` sphere — SVG + Framer Motion only.
  */
 
 interface ShapeConfig {
@@ -23,58 +24,81 @@ interface ShapeConfig {
   color: string;
   position: Partial<Record<'top' | 'left' | 'right' | 'bottom', string>>;
   depth: number;
-  floatDuration: number;
-  floatDelay: number;
-  /** Hidden below `sm` to keep mobile uncluttered (content-first). */
+  restRotate: number;
+  /** Hidden below `sm` to keep mobile content-first and uncluttered. */
   hideOnMobile?: boolean;
 }
 
 const SHAPES: ShapeConfig[] = [
+  // Primary trio (always visible)
   {
     type: 'icosahedron',
-    size: 180,
-    color: auditiq.sapGreen,
-    position: { top: '-4%', right: '6%' },
-    depth: 26,
-    floatDuration: 9,
-    floatDelay: 0,
+    size: 170,
+    color: palette.sap,
+    position: { top: '-6%', right: '4%' },
+    depth: 24,
+    restRotate: -6,
   },
   {
-    type: 'octahedron',
-    size: 140,
-    color: auditiq.bottleGreen,
-    position: { top: '34%', left: '-7%' },
+    type: 'octahedron', // wireframe diamond
+    size: 150,
+    color: palette.bottle,
+    position: { top: '32%', left: '-8%' },
     depth: 20,
-    floatDuration: 7.5,
-    floatDelay: 0.6,
+    restRotate: 8,
   },
   {
     type: 'prism',
-    size: 100,
-    color: auditiq.sage,
-    position: { bottom: '2%', right: '16%' },
+    size: 130,
+    color: palette.sage,
+    position: { bottom: '0%', right: '14%' },
     depth: 16,
-    floatDuration: 8.5,
-    floatDelay: 1.1,
+    restRotate: -10,
   },
+  // Secondary set (mobile-hidden)
   {
     type: 'cube',
-    size: 100,
-    color: auditiq.chocolate,
-    position: { top: '4%', left: '8%' },
+    size: 110,
+    color: palette.sap,
+    position: { top: '2%', left: '6%' },
     depth: 22,
-    floatDuration: 7,
-    floatDelay: 0.3,
+    restRotate: 6,
     hideOnMobile: true,
   },
   {
     type: 'tetrahedron',
-    size: 60,
-    color: auditiq.sapGreen,
-    position: { bottom: '16%', left: '4%' },
+    size: 90,
+    color: palette.sage,
+    position: { bottom: '14%', left: '2%' },
     depth: 14,
-    floatDuration: 6.5,
-    floatDelay: 1.4,
+    restRotate: -8,
+    hideOnMobile: true,
+  },
+  {
+    type: 'octahedron',
+    size: 80,
+    color: palette.sap,
+    position: { top: '54%', right: '2%' },
+    depth: 14,
+    restRotate: 12,
+    hideOnMobile: true,
+  },
+  {
+    type: 'tetrahedron',
+    size: 70,
+    color: palette.mint,
+    position: { top: '8%', left: '42%' },
+    depth: 12,
+    restRotate: 10,
+    hideOnMobile: true,
+  },
+  {
+    type: 'cube',
+    size: 60,
+    color: palette.pistachio,
+    position: { bottom: '32%', right: '40%' },
+    depth: 10,
+    restRotate: -12,
     hideOnMobile: true,
   },
 ];
@@ -119,8 +143,7 @@ export function HeroGeometry({ reduce = false }: { reduce?: boolean }) {
           color={s.color}
           position={s.position}
           depth={s.depth}
-          floatDuration={s.floatDuration}
-          floatDelay={s.floatDelay}
+          restRotate={s.restRotate}
           pointerX={pointerX}
           pointerY={pointerY}
           reduce={reduce}

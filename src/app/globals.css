@@ -93,8 +93,8 @@ body {
 
 /* ── Selection ── */
 ::selection {
-  background: rgba(59, 130, 246, 0.30);
-  color: #fff;
+  background: rgba(80, 125, 79, 0.25); /* sap green tint */
+  color: #1f4d36; /* bottle green */
 }
 
 /* ── Scrollbar ── */

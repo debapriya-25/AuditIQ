@@ -4,20 +4,20 @@ import { motion, useTransform, type MotionValue } from 'framer-motion';
 import { GEOMETRY_SHAPES, type GeometryType } from './geometry-shapes';
 
 /**
- * GeometryShape — a single reusable wireframe polyhedron (Phase 6.1).
+ * GeometryShape — a single reusable wireframe polyhedron (Phase 6.2).
  *
- * Movement budget (premium + intentional only):
- *   Idle   → almost motionless, very slight vertical float
- *   Hover  → slow CSS-3D rotate + slight scale + soft green glow
- *   Exit   → springs back to rest (Framer reverts whileHover)
- *   Pointer→ subtle proximity parallax driven by the parent layer
+ * Motion model (premium + intentional, no perpetual motion):
+ *   Default → static, with a slight resting rotation offset for organic feel
+ *   Pointer → subtle proximity parallax from the parent layer (reactive)
+ *   Hover   → slow CSS-3D rotate + gentle spring + subtle scale (0.8–1.5s)
+ *   Exit    → springs smoothly back to its resting position
  *
- * No infinite spinning / constant rotation. Reduced-motion → fully static.
+ * No spinning loops, no float loop, NO glow/blur. Reduced-motion → fully static.
  */
 
 export interface GeometryShapeProps {
   type: GeometryType;
-  /** Rendered pixel size (60 / 100 / 140 / 180 per the brief). */
+  /** Rendered pixel size (60 → 180 per the brief). */
   size: number;
   color: string;
   /** Absolute placement inside the geometry layer. */
@@ -27,9 +27,8 @@ export interface GeometryShapeProps {
   pointerY: MotionValue<number>;
   /** Parallax depth (px of travel at full pointer offset). */
   depth?: number;
-  /** Seconds for one idle float cycle. */
-  floatDuration?: number;
-  floatDelay?: number;
+  /** Static resting z-rotation (deg) so shapes look casually placed. */
+  restRotate?: number;
   reduce?: boolean;
   className?: string;
 }
@@ -42,8 +41,7 @@ export function GeometryShape({
   pointerX,
   pointerY,
   depth = 16,
-  floatDuration = 8,
-  floatDelay = 0,
+  restRotate = 0,
   reduce = false,
   className = '',
 }: GeometryShapeProps) {
@@ -64,37 +62,16 @@ export function GeometryShape({
         ...(reduce ? {} : { x, y }),
       }}
     >
-      {/* Float layer */}
-      <motion.div
-        className="h-full w-full"
-        style={{ perspective: 700 }}
-        animate={reduce ? {} : { y: [0, -7, 0] }}
-        transition={
-          reduce
-            ? {}
-            : {
-                duration: floatDuration,
-                delay: floatDelay,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }
-        }
-      >
-        {/* 3D hover rotor */}
+      {/* Perspective wrapper (static) */}
+      <div className="h-full w-full" style={{ perspective: 700 }}>
+        {/* 3D hover rotor — static at rest, reacts only to hover */}
         <motion.div
           className="h-full w-full"
-          style={{ transformStyle: 'preserve-3d' }}
+          style={{ transformStyle: 'preserve-3d', rotate: restRotate }}
           whileHover={
-            reduce
-              ? {}
-              : {
-                  rotateY: 26,
-                  rotateX: -14,
-                  scale: 1.08,
-                  filter: `drop-shadow(0 8px 18px ${color}40)`,
-                }
+            reduce ? {} : { rotateY: 20, rotateX: -10, scale: 1.06 }
           }
-          transition={{ type: 'spring', stiffness: 110, damping: 14 }}
+          transition={{ type: 'spring', stiffness: 60, damping: 16, mass: 1 }}
         >
           <svg
             viewBox="0 0 100 100"
@@ -114,7 +91,7 @@ export function GeometryShape({
                 strokeWidth={1.5}
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
-                opacity={0.85}
+                opacity={0.72}
               />
             ))}
             {shape.vertices.map((v, i) => (
@@ -124,12 +101,12 @@ export function GeometryShape({
                 cy={v[1]}
                 r={2.1}
                 fill={color}
-                opacity={0.95}
+                opacity={0.82}
               />
             ))}
           </svg>
         </motion.div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }

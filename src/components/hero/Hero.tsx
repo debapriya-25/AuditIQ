@@ -4,18 +4,20 @@ import Link from 'next/link';
 import { motion, type Variants } from 'framer-motion';
 import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { HeroBackgroundPaths } from './HeroBackgroundPaths';
+import { FloatingPathsBackground } from '@/components/ui/background-paths';
 import { HeroGeometry } from './HeroGeometry';
 import { HeroSavingsCard } from './HeroSavingsCard';
 
 /**
- * Hero — AuditIQ premium hero experience (Phase 6.1).
+ * Hero — AuditIQ premium hero experience (Phase 6.1 + 6.2 enhancements).
  *
  * Executive / financial / trustworthy SaaS aesthetic on a warm cream surface.
  * Visual-only: no flows, API contracts, or audit-engine behaviour are touched.
+ * Phase 6.2 adds the animated FloatingPathsBackground as a subtle supporting
+ * layer behind all content, a word-staggered headline, and refreshed tokens.
  *
  * Reveal sequence (spring/expo, never bouncy):
- *   1 badge → 2 headline → 3 subheadline → 4 CTAs → 5 savings card → 6 geometry
+ *   1 badge → 2 headline (per-word) → 3 subheadline → 4 CTAs → 5 card → 6 geometry
  *
  * Layout: desktop = split (content left / visual right); tablet + mobile stack
  * with content first and geometry below. Reduced motion → everything static.
@@ -33,6 +35,25 @@ const item: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EXPO } },
 };
 
+const headline: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.07 } },
+};
+
+const word: Variants = {
+  hidden: { opacity: 0, y: '0.5em' },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EXPO } },
+};
+
+// Copy unchanged — only "Overpaying" gets chocolate emphasis.
+const HEADLINE_WORDS = [
+  { text: 'Stop', accent: false },
+  { text: 'Overpaying', accent: true },
+  { text: 'for', accent: false },
+  { text: 'AI', accent: false },
+  { text: 'Tools.', accent: false },
+];
+
 export function Hero() {
   const reduce = useReducedMotion();
   // initial={false} renders straight at the "visible" state with no enter
@@ -42,28 +63,37 @@ export function Hero() {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative isolate -mt-16 flex min-h-screen items-center overflow-hidden bg-[radial-gradient(125%_125%_at_50%_8%,#FFFDF8_0%,#FAF7F0_46%,#F3EEE4_100%)] pt-16"
+      className="relative isolate -mt-16 flex min-h-screen items-center overflow-hidden bg-cream bg-[radial-gradient(125%_125%_at_50%_8%,#FFFDF8_0%,#FAF7F0_46%,#F3EEE4_100%)] pt-16"
     >
-      <HeroBackgroundPaths reduce={reduce} className="z-0" />
+      {/* Supporting animated layer — behind all content, never covers text */}
+      <FloatingPathsBackground className="z-0" />
 
       <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-6 py-16 lg:grid-cols-2 lg:gap-10 lg:py-20">
         {/* ── Content (left) ── */}
         <motion.div variants={container} initial={init} animate="visible">
           {/* 1 — Badge */}
           <motion.div variants={item}>
-            <span className="inline-flex items-center gap-2 rounded-full border border-sage/70 bg-ivory/70 px-3.5 py-1.5 text-xs font-medium text-bottle-green backdrop-blur-sm">
-              <Sparkles className="h-3.5 w-3.5 text-sap-green" aria-hidden="true" />
+            <span className="inline-flex items-center gap-2 rounded-full border border-sage/70 bg-ivory/70 px-3.5 py-1.5 text-xs font-medium text-bottle backdrop-blur-sm">
+              <Sparkles className="h-3.5 w-3.5 text-sap" aria-hidden="true" />
               Built for Startup Engineering Teams
             </span>
           </motion.div>
 
-          {/* 2 — Headline */}
+          {/* 2 — Headline (per-word stagger) */}
           <motion.h1
             id="hero-heading"
-            variants={item}
-            className="mt-6 font-display text-4xl font-bold leading-[1.05] tracking-tight text-bottle-green sm:text-5xl lg:text-6xl"
+            variants={headline}
+            className="mt-6 font-display text-4xl font-bold leading-[1.05] tracking-tight text-bottle sm:text-5xl lg:text-6xl"
           >
-            Stop <span className="text-chocolate">Overpaying</span> for AI Tools.
+            {HEADLINE_WORDS.map((w) => (
+              <motion.span
+                key={w.text}
+                variants={word}
+                className={`mr-[0.28em] inline-block ${w.accent ? 'text-chocolate' : ''}`}
+              >
+                {w.text}
+              </motion.span>
+            ))}
           </motion.h1>
 
           {/* 3 — Subheadline */}
@@ -83,7 +113,7 @@ export function Hero() {
           >
             <Link
               href="/audit"
-              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-bottle-green px-6 py-3.5 text-sm font-semibold text-cream shadow-[0_10px_30px_-10px_rgba(31,77,54,0.7)] transition-all hover:-translate-y-0.5 hover:bg-[#173d2a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bottle-green focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-bottle px-6 py-3.5 text-sm font-semibold text-cream shadow-[0_10px_30px_-10px_rgba(31,77,54,0.7)] transition-all hover:-translate-y-0.5 hover:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bottle focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             >
               Run Free Audit
               <ArrowRight
@@ -93,7 +123,7 @@ export function Hero() {
             </Link>
             <a
               href="#sample-report"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-bottle-green/30 bg-transparent px-6 py-3.5 text-sm font-semibold text-bottle-green transition-colors hover:bg-mint/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bottle-green focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-bottle/30 bg-transparent px-6 py-3.5 text-sm font-semibold text-bottle transition-colors hover:bg-mint/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bottle focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             >
               View Sample Report
             </a>
@@ -107,7 +137,7 @@ export function Hero() {
             {['No login required', 'Results in under 60 seconds', 'Free forever'].map(
               (label) => (
                 <li key={label} className="inline-flex items-center gap-1.5">
-                  <Check className="h-3.5 w-3.5 text-sap-green" aria-hidden="true" />
+                  <Check className="h-3.5 w-3.5 text-sap" aria-hidden="true" />
                   {label}
                 </li>
               )
