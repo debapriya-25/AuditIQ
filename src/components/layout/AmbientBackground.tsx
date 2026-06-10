@@ -8,10 +8,6 @@ const SceneWrapper = dynamic(
   () => import('@/components/3d/SceneWrapper'),
   { ssr: false }
 );
-const HeroScene = dynamic(
-  () => import('@/components/3d/HeroScene'),
-  { ssr: false }
-);
 const GridScene = dynamic(
   () => import('@/components/3d/GridScene'),
   { ssr: false }
@@ -30,11 +26,9 @@ export function AmbientBackground() {
 
   return (
     <>
-      {pathname === '/' && (
-        <SceneWrapper>
-          <HeroScene />
-        </SceneWrapper>
-      )}
+      {/* Phase 6.1: the landing hero ('/') now owns its own cream surface +
+          lightweight SVG/CSS-3D geometry, so the R3F HeroScene sphere is no
+          longer mounted here. Other routes' 3D scenes are unchanged. */}
       {pathname === '/audit' && (
         <SceneWrapper>
           <GridScene />

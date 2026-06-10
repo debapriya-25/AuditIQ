@@ -14,18 +14,18 @@ export function Navbar() {
   return (
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled 
-          ? 'bg-[rgba(8,12,20,0.85)] backdrop-blur-[16px] border-b border-[rgba(120,160,255,0.10)] shadow-[0_1px_0_rgba(120,160,255,0.05)]' 
+        scrolled
+          ? 'bg-[rgba(255,253,248,0.85)] backdrop-blur-[16px] border-b border-sage/40 shadow-[0_1px_0_rgba(31,77,54,0.04)]'
           : 'bg-transparent border-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="font-display font-bold text-lg text-[var(--text-primary)] flex items-center gap-2">
-          <span className="text-[var(--color-signal)]">●</span> AuditIQ
+        <Link href="/" className="font-display font-bold text-lg text-bottle-green flex items-center gap-2">
+          <span className="text-sap-green">●</span> AuditIQ
         </Link>
-        <Link 
-          href="/audit" 
-          className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-[var(--radius-btn)] border border-[rgba(59,130,246,0.4)] text-[var(--color-signal)] text-sm font-medium hover:bg-[rgba(59,130,246,0.1)] hover:border-opacity-100 transition-colors"
+        <Link
+          href="/audit"
+          className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-[var(--radius-btn)] border border-bottle-green/30 text-bottle-green text-sm font-medium hover:bg-mint/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bottle-green focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         >
           Run Your Own Audit
         </Link>

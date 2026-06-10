@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import { auditiqTailwindColors } from './src/lib/theme/colors';
 
 const config: Config = {
   darkMode: ['class'],
@@ -10,6 +11,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // ── AuditIQ premium palette (Phase 6.1) — single source: src/lib/theme/colors.ts ──
+        ...auditiqTailwindColors,
+        // ── Legacy dark-theme tokens (kept for existing components) ──
         void: '#050810',
         abyss: '#0A0F1E',
         depth: '#111827',

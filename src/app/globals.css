@@ -218,3 +218,21 @@ body {
     transform: translateY(0);
   }
 }
+
+/* ──────────────────────────────────────────────────────
+   AuditIQ Premium Palette (Phase 6.1)
+   Mirrors src/lib/theme/colors.ts. Additive — does not touch
+   the legacy dark tokens above. Used by the cream hero surface.
+   ────────────────────────────────────────────────────── */
+:root {
+  --aiq-cream:        #FAF7F0;
+  --aiq-beige:        #F3EEE4;
+  --aiq-ivory:        #FFFDF8;
+  --aiq-sage:         #A8C3A0;
+  --aiq-mint:         #BFE3C0;
+  --aiq-pistachio:    #CDE7B0;
+  --aiq-bottle-green: #1F4D36;
+  --aiq-sap-green:    #507D4F;
+  --aiq-chocolate:    #5C4033;
+  --aiq-ink:          #33291F;
+}
