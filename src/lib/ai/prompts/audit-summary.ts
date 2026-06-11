@@ -1,29 +1,13 @@
-import { AuditSelect } from '../../repositories/audit';
-import { AuditInputPayload } from '../../validators/audit-input';
-import { ToolAuditFindings } from '../../audit/types';
+import { SummaryContext } from '../../services/ai-summary.service';
 
-export function buildAuditSummaryPrompt(
-  audit: AuditSelect, 
-  findings: ToolAuditFindings[]
-): string {
-  // Use explicit casting as the payload was validated on ingest
-  const auditData = audit.auditData as AuditInputPayload;
-
-  // Compress the context to strictly necessary data
-  const context = {
-    teamSize: auditData.teamSize,
-    useCase: audit.useCase,
-    totalMonthlySpend: auditData.tools.reduce((acc, t) => acc + t.monthlySpend, 0),
-    totalMonthlySavings: audit.totalSavingsMonthly,
-    toolsEvaluated: auditData.tools.map(t => t.toolId),
-    keyFindings: findings.map(f => ({
-      tool: f.toolId,
-      status: f.status,
-      action: f.recommendation.recommendedAction,
-      savings: f.savings.savingsPerMonth,
-      reason: f.recommendation.reason,
-    })),
-  };
-
+/**
+ * Serializes the deterministic summary context into the user-prompt payload.
+ *
+ * All figures are pre-computed in `prepareSummaryContext` — the model receives
+ * exact numbers (spend, savings, most-expensive tool, largest spend category,
+ * biggest opportunity) and only has to narrate them. It must never recompute or
+ * invent values.
+ */
+export function buildAuditSummaryPrompt(context: SummaryContext): string {
   return JSON.stringify(context, null, 2);
 }

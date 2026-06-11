@@ -6,6 +6,7 @@ import { aiSummaryResponseSchema } from './schemas/summary';
 import { withRetry } from './utils/retry';
 import { sanitizeOutput } from './utils/sanitize';
 import { serializeAISummary, generateFallbackSummary } from './serializers';
+import { aiSummaryService } from '../services/ai-summary.service';
 import { logger } from '../logger';
 import { AuditSelect } from '../repositories/audit';
 import { ToolAuditFindings } from '../audit/types';
@@ -26,14 +27,17 @@ export async function generateAuditSummary(
   findings: ToolAuditFindings[]
 ): Promise<string> {
   const startTime = Date.now();
-  
+
+  // Deterministic context shared by both the prompt and the fallback.
+  const context = aiSummaryService.prepareSummaryContext(audit, findings);
+
   try {
     logger.info(
       { auditId: audit.id, model: AI_CONFIG.model },
       'Starting AI summary generation'
     );
 
-    const userPrompt = buildAuditSummaryPrompt(audit, findings);
+    const userPrompt = buildAuditSummaryPrompt(context);
 
     // Execute provider with retry wrapper and timeout handling
     const rawResponse = await withRetry(
@@ -72,6 +76,6 @@ export async function generateAuditSummary(
       'AI summary generation failed. Returning deterministic fallback.'
     );
 
-    return generateFallbackSummary(Number(audit.totalSavingsMonthly));
+    return generateFallbackSummary(context);
   }
 }

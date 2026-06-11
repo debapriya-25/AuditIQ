@@ -11,7 +11,7 @@ export class GeminiProvider implements AIProvider {
     this.config = config;
   }
 
-  private init() {
+  private init(systemInstruction: string): GenerativeModel {
     if (!this.genAI || !this.model) {
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
@@ -19,8 +19,13 @@ export class GeminiProvider implements AIProvider {
       }
 
       this.genAI = new GoogleGenerativeAI(apiKey);
+      // Pass the system prompt as a first-class `systemInstruction` (supported in
+      // @google/generative-ai 0.24+) rather than concatenating it into the user
+      // content — the model adheres to it far more reliably. The system prompt is
+      // static, so caching the model instance is safe.
       this.model = this.genAI.getGenerativeModel({
         model: this.config.model,
+        systemInstruction,
         generationConfig: {
           temperature: this.config.temperature,
           maxOutputTokens: this.config.maxOutputTokens,
@@ -32,21 +37,11 @@ export class GeminiProvider implements AIProvider {
   }
 
   async generateSummary(prompt: string, systemPrompt: string): Promise<string> {
-    const model = this.init();
-    
-    // For Gemini, system instructions are passed as a specialized part of the config or prompt.
-    // However, @google/generative-ai 0.24+ supports systemInstruction in getGenerativeModel,
-    // but to remain flexible and since we init lazy, we can prepend the system prompt or use the systemInstruction field.
-    // We will prepend it to the user prompt if systemInstruction is not dynamically overridable per-call,
-    // or recreate the model instance if system instructions change (in this app they are static).
-    
-    // To be completely safe and avoid re-initializing, we can just inject the system prompt into the content.
-    const fullPrompt = `${systemPrompt}\n\nUSER DATA:\n${prompt}`;
+    const model = this.init(systemPrompt);
 
     try {
-      const result = await model.generateContent(fullPrompt);
-      const response = result.response;
-      return response.text();
+      const result = await model.generateContent(prompt);
+      return result.response.text();
     } catch (error) {
       // Re-throw to be caught by the retry wrapper
       throw new Error(`Gemini Provider Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
