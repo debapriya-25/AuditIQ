@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { motion, type Variants } from 'framer-motion';
+import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { FloatingPathsBackground } from '@/components/ui/background-paths';
@@ -56,6 +57,9 @@ const HEADLINE_WORDS = [
 
 export function Hero() {
   const reduce = useReducedMotion();
+  // The Sample Audit Result card is hidden on load and revealed only when the
+  // user clicks "View Sample Report" — it animates in on top of the geometry.
+  const [showSample, setShowSample] = useState(false);
   // initial={false} renders straight at the "visible" state with no enter
   // animation — the reduced-motion path while keeping the same final layout.
   const init = reduce ? false : 'hidden';
@@ -121,12 +125,14 @@ export function Hero() {
                 aria-hidden="true"
               />
             </Link>
-            <a
-              href="#sample-report"
+            <button
+              type="button"
+              onClick={() => setShowSample(true)}
+              aria-expanded={showSample}
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-bottle/30 bg-transparent px-6 py-3.5 text-sm font-semibold text-bottle transition-colors hover:bg-mint/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bottle focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             >
               View Sample Report
-            </a>
+            </button>
           </motion.div>
 
           {/* Trust line */}
@@ -157,17 +163,42 @@ export function Hero() {
             <HeroGeometry reduce={reduce} />
           </motion.div>
 
-          {/* 5 — Savings card */}
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: 28, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={
-              reduce ? { duration: 0 } : { duration: 0.7, delay: 0.7, ease: EXPO }
-            }
-            className="pointer-events-none relative z-10 flex h-full items-center justify-center"
-          >
-            <HeroSavingsCard reduce={reduce} />
-          </motion.div>
+          {/* 5 — Sample Audit Result card — hidden until "View Sample Report".
+              Animates ON TOP of the geometry (geometry above is untouched). */}
+          <AnimatePresence>
+            {showSample && (
+              <motion.div
+                key="sample-card"
+                className="absolute inset-0 z-10 flex h-full items-center justify-center px-2"
+                style={{ transformPerspective: 1000 }}
+                initial={
+                  reduce
+                    ? { opacity: 0 }
+                    : { opacity: 0, scale: 0.8, y: 30, rotateY: -15 }
+                }
+                animate={
+                  reduce
+                    ? { opacity: 1 }
+                    : { opacity: 1, scale: 1, y: 0, rotateY: 0 }
+                }
+                exit={
+                  reduce
+                    ? { opacity: 0 }
+                    : { opacity: 0, scale: 0.8, y: 30, rotateY: -15 }
+                }
+                transition={
+                  reduce
+                    ? { duration: 0.15 }
+                    : { type: 'spring', stiffness: 120, damping: 18 }
+                }
+              >
+                <HeroSavingsCard
+                  reduce={reduce}
+                  onClose={() => setShowSample(false)}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </section>

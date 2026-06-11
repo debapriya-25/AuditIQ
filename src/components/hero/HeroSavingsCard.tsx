@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { motion, animate, useMotionValue, useTransform } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, X } from 'lucide-react';
 
 /**
  * HeroSavingsCard — illustrative "Sample Audit Result" (Phase 6.2).
@@ -58,14 +58,28 @@ function Money({
   return <motion.span>{text}</motion.span>;
 }
 
-export function HeroSavingsCard({ reduce = false }: { reduce?: boolean }) {
+export function HeroSavingsCard({
+  reduce = false,
+  onClose,
+}: {
+  reduce?: boolean;
+  onClose?: (() => void) | undefined;
+}) {
   return (
-    <div
-      id="sample-report"
-      className="pointer-events-auto w-full max-w-sm scroll-mt-28 rounded-2xl border border-sage/60 bg-ivory/90 p-6 shadow-[0_24px_60px_-24px_rgba(31,77,54,0.35)] backdrop-blur-sm sm:p-7"
-    >
+    <div className="pointer-events-auto relative w-full max-w-sm rounded-2xl border border-sage/60 bg-ivory/90 p-6 shadow-[0_24px_60px_-24px_rgba(31,77,54,0.35)] backdrop-blur-sm sm:p-7">
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close sample report"
+          className="absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-full text-ink/45 transition-colors hover:bg-cream hover:text-bottle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bottle"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
+
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3 pr-8">
         <div className="text-sm font-semibold text-bottle">
           Sample Audit Result
         </div>

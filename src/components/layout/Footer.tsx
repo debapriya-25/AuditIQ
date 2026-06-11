@@ -1,8 +1,11 @@
 'use client';
 import { usePathname } from 'next/navigation';
+import { usePrivacyUI } from '../privacy/PrivacyUIProvider';
 
 export function Footer() {
   const pathname = usePathname();
+  const { openPrivacy, openHowItWorks, openCookiePreferences } = usePrivacyUI();
+
   // The audit form is a focused, distraction-free funnel step — no footer.
   if (pathname === '/audit') return null;
 
@@ -14,8 +17,27 @@ export function Footer() {
           {' · '}Optimize AI Costs. Keep Performance.
         </p>
         <div className="flex items-center gap-6 text-ink/70 text-body-sm">
-          <a href="#" className="hover:text-bottle transition-colors">Privacy</a>
-          <a href="/#how-it-works" className="hover:text-bottle transition-colors">How it works</a>
+          <button
+            type="button"
+            onClick={openPrivacy}
+            className="hover:text-bottle transition-colors focus-visible:outline-none focus-visible:underline"
+          >
+            Privacy
+          </button>
+          <button
+            type="button"
+            onClick={openHowItWorks}
+            className="hover:text-bottle transition-colors focus-visible:outline-none focus-visible:underline"
+          >
+            How it works
+          </button>
+          <button
+            type="button"
+            onClick={openCookiePreferences}
+            className="hover:text-bottle transition-colors focus-visible:outline-none focus-visible:underline"
+          >
+            Cookie preferences
+          </button>
         </div>
       </div>
     </footer>

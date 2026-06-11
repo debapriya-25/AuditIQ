@@ -5,6 +5,8 @@ import { AmbientBackground } from './AmbientBackground';
 import { PageTransitionLayer } from './PageTransitionLayer';
 import { NoiseOverlay } from '../ui/NoiseOverlay';
 import { AuroraBackground } from '../ui/AuroraBackground';
+import { PrivacyUIProvider } from '../privacy/PrivacyUIProvider';
+import { CookieBanner } from '../privacy/CookieBanner';
 
 /**
  * AppShell — Modular, decoupled layout shell.
@@ -18,24 +20,29 @@ import { AuroraBackground } from '../ui/AuroraBackground';
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col relative bg-cream">
-      {/* ── Ambient Layers ── */}
-      <AuroraBackground />
-      <AmbientBackground />
-      <NoiseOverlay />
+    <PrivacyUIProvider>
+      <div className="min-h-screen flex flex-col relative bg-cream">
+        {/* ── Ambient Layers ── */}
+        <AuroraBackground />
+        <AmbientBackground />
+        <NoiseOverlay />
 
-      {/* ── Navigation ── */}
-      <Navbar />
+        {/* ── Navigation ── */}
+        <Navbar />
 
-      {/* ── Page Content ── */}
-      <main className="flex-1 flex flex-col w-full relative z-10">
-        <PageTransitionLayer>
-          {children}
-        </PageTransitionLayer>
-      </main>
+        {/* ── Page Content ── */}
+        <main className="flex-1 flex flex-col w-full relative z-10">
+          <PageTransitionLayer>
+            {children}
+          </PageTransitionLayer>
+        </main>
 
-      {/* ── Footer ── */}
-      <Footer />
-    </div>
+        {/* ── Footer ── */}
+        <Footer />
+      </div>
+
+      {/* ── First-visit cookie consent ── */}
+      <CookieBanner />
+    </PrivacyUIProvider>
   );
 }
