@@ -1,8 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { AnimatePresence, motion, type Variants } from 'framer-motion';
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+  type Variants,
+} from 'framer-motion';
 import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { FloatingPathsBackground } from '@/components/ui/background-paths';
@@ -64,8 +70,37 @@ export function Hero() {
   // animation — the reduced-motion path while keeping the same final layout.
   const init = reduce ? false : 'hidden';
 
+  // Cursor-follow parallax for the geometry. Tracked across the WHOLE hero so
+  // the field reacts wherever the cursor moves (Stripe/Linear feel). Driven by
+  // MotionValues — never React state — so pointer movement does NOT re-render
+  // the hero (which would otherwise restart the flowing-paths animation).
+  const sectionRef = useRef<HTMLElement>(null);
+  const rawX = useMotionValue(0);
+  const rawY = useMotionValue(0);
+  const pointerX = useSpring(rawX, { stiffness: 80, damping: 18, mass: 0.6 });
+  const pointerY = useSpring(rawY, { stiffness: 80, damping: 18, mass: 0.6 });
+
+  function handlePointerMove(e: React.PointerEvent<HTMLElement>) {
+    if (reduce) return;
+    const el = sectionRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+    rawX.set(Math.max(-1, Math.min(1, nx)));
+    rawY.set(Math.max(-1, Math.min(1, ny)));
+  }
+
+  function handlePointerLeave() {
+    rawX.set(0);
+    rawY.set(0);
+  }
+
   return (
     <section
+      ref={sectionRef}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
       aria-labelledby="hero-heading"
       className="relative isolate -mt-16 flex min-h-screen items-center overflow-hidden bg-cream bg-[radial-gradient(125%_125%_at_50%_8%,#FFFDF8_0%,#FAF7F0_46%,#F3EEE4_100%)] pt-16"
     >
@@ -127,11 +162,11 @@ export function Hero() {
             </Link>
             <button
               type="button"
-              onClick={() => setShowSample(true)}
+              onClick={() => setShowSample((v) => !v)}
               aria-expanded={showSample}
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-bottle/30 bg-transparent px-6 py-3.5 text-sm font-semibold text-bottle transition-colors hover:bg-mint/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bottle focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             >
-              View Sample Report
+              {showSample ? 'Hide Sample Report' : 'View Sample Report'}
             </button>
           </motion.div>
 
@@ -151,25 +186,27 @@ export function Hero() {
           </motion.ul>
         </motion.div>
 
-        {/* ── Visual (right) ── */}
+        {/* ── Visual (right) ──
+            Layer order (low → high): geometry (z-0) → sample card (z-20).
+            The card sits above all geometry; geometry stays visible around it. */}
         <div className="relative min-h-[420px] lg:min-h-[540px]">
           {/* 6 — Geometry (fades in last) */}
           <motion.div
             initial={reduce ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={reduce ? { duration: 0 } : { duration: 0.9, delay: 0.95, ease: EXPO }}
-            className="absolute inset-0"
+            className="absolute inset-0 z-0"
           >
-            <HeroGeometry reduce={reduce} />
+            <HeroGeometry pointerX={pointerX} pointerY={pointerY} reduce={reduce} />
           </motion.div>
 
           {/* 5 — Sample Audit Result card — hidden until "View Sample Report".
-              Animates ON TOP of the geometry (geometry above is untouched). */}
+              Animates ON TOP of the geometry (z-20 > geometry z-0). */}
           <AnimatePresence>
             {showSample && (
               <motion.div
                 key="sample-card"
-                className="absolute inset-0 z-10 flex h-full items-center justify-center px-2"
+                className="absolute inset-0 z-20 flex h-full items-center justify-center px-2"
                 style={{ transformPerspective: 1000 }}
                 initial={
                   reduce

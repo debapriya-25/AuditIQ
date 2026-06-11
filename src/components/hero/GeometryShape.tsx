@@ -29,6 +29,8 @@ export interface GeometryShapeProps {
   depth?: number;
   /** Static resting z-rotation (deg) so shapes look casually placed. */
   restRotate?: number;
+  /** Stroke/vertex opacity override (0..1). Defaults to the existing look. */
+  opacity?: number | undefined;
   reduce?: boolean;
   className?: string;
 }
@@ -42,10 +44,18 @@ export function GeometryShape({
   pointerY,
   depth = 16,
   restRotate = 0,
+  opacity,
   reduce = false,
   className = '',
 }: GeometryShapeProps) {
   const shape = GEOMETRY_SHAPES[type];
+
+  // Existing shapes keep their original look; new shapes can pass a lower,
+  // 15–40% opacity for a recessed, layered-depth feel.
+  const edgeOpacity = opacity ?? 0.72;
+  const vertexOpacity = opacity ?? 0.82;
+  // Rear edges of true-3D shapes are dimmed (rounded to avoid float noise).
+  const backEdgeOpacity = Math.round(edgeOpacity * 0.42 * 1000) / 1000;
 
   // Proximity parallax — hooks run unconditionally; only applied when motion on.
   const x = useTransform(pointerX, [-1, 1], [-depth, depth]);
@@ -80,6 +90,21 @@ export function GeometryShape({
             fill="none"
             className="h-full w-full"
           >
+            {/* Rear edges first, dimmed — gives true-3D shapes visible depth */}
+            {shape.backEdges?.map((e, i) => (
+              <line
+                key={`b-${i}`}
+                x1={e[0]}
+                y1={e[1]}
+                x2={e[2]}
+                y2={e[3]}
+                stroke={color}
+                strokeWidth={1.25}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+                opacity={backEdgeOpacity}
+              />
+            ))}
             {shape.edges.map((e, i) => (
               <line
                 key={`e-${i}`}
@@ -91,7 +116,7 @@ export function GeometryShape({
                 strokeWidth={1.5}
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
-                opacity={0.72}
+                opacity={edgeOpacity}
               />
             ))}
             {shape.vertices.map((v, i) => (
@@ -101,7 +126,7 @@ export function GeometryShape({
                 cy={v[1]}
                 r={2.1}
                 fill={color}
-                opacity={0.82}
+                opacity={vertexOpacity}
               />
             ))}
           </svg>

@@ -1,21 +1,22 @@
 'use client';
 
-import { useRef, type PointerEvent } from 'react';
-import { useMotionValue, useSpring } from 'framer-motion';
+import { type MotionValue } from 'framer-motion';
 import { GeometryShape } from './GeometryShape';
 import type { GeometryType } from './geometry-shapes';
 import { palette } from '@/lib/theme/colors';
 
 /**
- * HeroGeometry — reusable interactive geometry layer (Phase 6.2).
+ * HeroGeometry — intentionally-composed interactive geometry layer.
  *
- * Lays out 8 small wireframe polyhedra (sizes 60–180, tetrahedrons /
- * octahedrons / diamonds / prisms / cubes — no spheres or globes) around the
- * savings card. Shapes are static by default; a shared spring-smoothed
- * pointer-proximity parallax adds subtle reactive depth and eases back to rest
- * on pointer leave. Lighter shapes are hidden on mobile to keep it uncluttered.
+ * Reads left → right as a deliberate flow: a true-3D geodesic SPHERE bridges the
+ * headline into the field, an octahedron anchors the mid, a true-3D DODECAHEDRON
+ * leads into the reduced upper-right icosahedron cluster, with smaller accents
+ * filling the gaps. No duplicated geometry, no right-side overcrowding.
  *
- * Replaces the old R3F `HeroScene` sphere — SVG + Framer Motion only.
+ * Shapes are static by default; a shared spring-smoothed pointer-proximity
+ * parallax adds subtle reactive depth that eases back to rest on pointer leave.
+ * Hover triggers a gentle spring rotate + scale. No perpetual / auto motion.
+ * SVG + Framer Motion only (no R3F).
  */
 
 interface ShapeConfig {
@@ -25,42 +26,68 @@ interface ShapeConfig {
   position: Partial<Record<'top' | 'left' | 'right' | 'bottom', string>>;
   depth: number;
   restRotate: number;
+  /** Stroke/vertex opacity override (0..1). Omitted = original look. */
+  opacity?: number;
   /** Hidden below `sm` to keep mobile content-first and uncluttered. */
   hideOnMobile?: boolean;
 }
 
 const SHAPES: ShapeConfig[] = [
-  // Primary trio (always visible)
+  // ── Bridge: geodesic sphere (true 3D). The composition's focal point — it
+  //    bridges the headline (left) into the right-hand cluster and fills the
+  //    centre the Sample Report card used to occupy. ──
   {
-    type: 'icosahedron',
-    size: 170,
+    type: 'geosphere',
+    size: 190,
     color: palette.sap,
-    position: { top: '-6%', right: '4%' },
-    depth: 24,
-    restRotate: -6,
+    opacity: 0.68,
+    position: { top: '12%', left: '6%' },
+    depth: 26,
+    restRotate: 0,
   },
+  // ── Mid spine: octahedron (sits below the sphere) ──
   {
-    type: 'octahedron', // wireframe diamond
+    type: 'octahedron',
     size: 150,
     color: palette.bottle,
-    position: { top: '32%', left: '-8%' },
+    position: { top: '48%', left: '12%' },
     depth: 20,
     restRotate: 8,
+  },
+  // ── Centre-right: dodecahedron, rebuilt as a true-3D wireframe ──
+  {
+    type: 'dodecahedron',
+    size: 166,
+    color: palette.bottle,
+    opacity: 0.58,
+    position: { top: '16%', right: '22%' },
+    depth: 22,
+    restRotate: -7,
+  },
+  // ── Upper-right cluster: icosahedron, reduced ~16% and raised so it no
+  //    longer dominates the hierarchy ──
+  {
+    type: 'icosahedron',
+    size: 142,
+    color: palette.sap,
+    position: { top: '-12%', right: '5%' },
+    depth: 22,
+    restRotate: -6,
   },
   {
     type: 'prism',
     size: 130,
     color: palette.sage,
-    position: { bottom: '0%', right: '14%' },
+    position: { bottom: '0%', right: '16%' },
     depth: 16,
     restRotate: -10,
   },
-  // Secondary set (mobile-hidden)
+  // ── Supporting accents (mobile-hidden) — fill the gaps, balance the field ──
   {
     type: 'cube',
     size: 110,
     color: palette.sap,
-    position: { top: '2%', left: '6%' },
+    position: { top: '-8%', left: '6%' },
     depth: 22,
     restRotate: 6,
     hideOnMobile: true,
@@ -78,7 +105,7 @@ const SHAPES: ShapeConfig[] = [
     type: 'octahedron',
     size: 80,
     color: palette.sap,
-    position: { top: '54%', right: '2%' },
+    position: { top: '56%', right: '6%' },
     depth: 14,
     restRotate: 12,
     hideOnMobile: true,
@@ -87,7 +114,7 @@ const SHAPES: ShapeConfig[] = [
     type: 'tetrahedron',
     size: 70,
     color: palette.mint,
-    position: { top: '8%', left: '42%' },
+    position: { bottom: '26%', right: '36%' },
     depth: 12,
     restRotate: 10,
     hideOnMobile: true,
@@ -96,45 +123,27 @@ const SHAPES: ShapeConfig[] = [
     type: 'cube',
     size: 60,
     color: palette.pistachio,
-    position: { bottom: '32%', right: '40%' },
+    position: { top: '6%', right: '40%' },
     depth: 10,
     restRotate: -12,
     hideOnMobile: true,
   },
 ];
 
-export function HeroGeometry({ reduce = false }: { reduce?: boolean }) {
-  const ref = useRef<HTMLDivElement>(null);
+interface HeroGeometryProps {
+  /** Shared, spring-smoothed pointer offsets (-1..1) from the hero section. */
+  pointerX: MotionValue<number>;
+  pointerY: MotionValue<number>;
+  reduce?: boolean;
+}
 
-  const rawX = useMotionValue(0);
-  const rawY = useMotionValue(0);
-  const pointerX = useSpring(rawX, { stiffness: 80, damping: 18, mass: 0.6 });
-  const pointerY = useSpring(rawY, { stiffness: 80, damping: 18, mass: 0.6 });
-
-  const handlePointerMove = (e: PointerEvent<HTMLDivElement>) => {
-    if (reduce) return;
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-    rawX.set(Math.max(-1, Math.min(1, nx)));
-    rawY.set(Math.max(-1, Math.min(1, ny)));
-  };
-
-  const handlePointerLeave = () => {
-    rawX.set(0);
-    rawY.set(0);
-  };
-
+export function HeroGeometry({
+  pointerX,
+  pointerY,
+  reduce = false,
+}: HeroGeometryProps) {
   return (
-    <div
-      ref={ref}
-      aria-hidden="true"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      className="absolute inset-0"
-    >
+    <div aria-hidden="true" className="absolute inset-0">
       {SHAPES.map((s, i) => (
         <GeometryShape
           key={i}
@@ -144,6 +153,7 @@ export function HeroGeometry({ reduce = false }: { reduce?: boolean }) {
           position={s.position}
           depth={s.depth}
           restRotate={s.restRotate}
+          opacity={s.opacity}
           pointerX={pointerX}
           pointerY={pointerY}
           reduce={reduce}
