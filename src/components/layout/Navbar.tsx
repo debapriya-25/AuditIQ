@@ -1,9 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
+  // On the audit form the user is already running an audit — hide the CTA.
+  const showAuditCta = pathname !== '/audit';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -23,12 +27,14 @@ export function Navbar() {
         <Link href="/" className="font-display font-bold text-lg text-bottle flex items-center gap-2">
           <span className="text-sap">●</span> AuditIQ
         </Link>
-        <Link
-          href="/audit"
-          className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-[var(--radius-btn)] border border-bottle/30 text-bottle text-sm font-medium hover:bg-mint/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bottle focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-        >
-          Run Your Own Audit
-        </Link>
+        {showAuditCta && (
+          <Link
+            href="/audit"
+            className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-[var(--radius-btn)] border border-bottle/30 text-bottle text-sm font-medium hover:bg-mint/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bottle focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+          >
+            Run Your Own Audit
+          </Link>
+        )}
       </div>
     </header>
   );

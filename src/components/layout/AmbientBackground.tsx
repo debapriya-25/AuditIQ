@@ -1,39 +1,14 @@
 'use client';
-import { usePathname } from 'next/navigation';
-import dynamic from 'next/dynamic';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
-
-/* ── Dynamic imports — SSR disabled for all 3D ── */
-const SceneWrapper = dynamic(
-  () => import('@/components/3d/SceneWrapper'),
-  { ssr: false }
-);
-const GridScene = dynamic(
-  () => import('@/components/3d/GridScene'),
-  { ssr: false }
-);
 
 /**
- * AmbientBackground — Manages route-specific 3D scenes.
- * Renders dynamically imported R3F canvases with reduced-motion fallback.
+ * AmbientBackground — placeholder for route-specific ambient 3D scenes.
+ *
+ * Phase 6.1+: the landing hero ('/') owns its own cream surface + lightweight
+ * SVG/CSS geometry, and the audit form ('/audit') is a focused cream surface
+ * with no dark WebGL layer (the previous GridScene clashed with the warm
+ * palette and is intentionally not mounted). This component is kept as the
+ * documented seam for re-introducing route-scoped scenes later.
  */
 export function AmbientBackground() {
-  const pathname = usePathname();
-  const prefersReducedMotion = useReducedMotion();
-
-  // No 3D for reduced-motion users — AuroraBackground CSS handles the ambient
-  if (prefersReducedMotion) return null;
-
-  return (
-    <>
-      {/* Phase 6.1: the landing hero ('/') now owns its own cream surface +
-          lightweight SVG/CSS-3D geometry, so the R3F HeroScene sphere is no
-          longer mounted here. Other routes' 3D scenes are unchanged. */}
-      {pathname === '/audit' && (
-        <SceneWrapper>
-          <GridScene />
-        </SceneWrapper>
-      )}
-    </>
-  );
+  return null;
 }
