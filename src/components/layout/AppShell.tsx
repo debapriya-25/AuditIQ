@@ -18,7 +18,7 @@ import { AuroraBackground } from '../ui/AuroraBackground';
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col relative">
+    <div className="min-h-screen flex flex-col relative bg-cream">
       {/* ── Ambient Layers ── */}
       <AuroraBackground />
       <AmbientBackground />

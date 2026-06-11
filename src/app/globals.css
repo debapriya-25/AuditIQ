@@ -82,9 +82,15 @@ html {
   scroll-behavior: smooth;
 }
 
+/* MVP is a single, light, cream/green theme — no dark mode. The base surface
+   must be cream from the very first paint so navy/black never flashes. */
+html {
+  background-color: var(--aiq-cream);
+}
+
 body {
-  background-color: var(--color-void);
-  color: var(--text-primary);
+  background-color: var(--aiq-cream);
+  color: var(--aiq-ink);
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -99,17 +105,17 @@ body {
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-void);
+  background: var(--aiq-beige);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-overlay);
-  border-radius: 3px;
+  background: var(--aiq-sage);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-signal);
+  background: var(--aiq-sap-green);
 }
 
 /* ──────────────────────────────────────────────────────

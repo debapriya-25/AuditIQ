@@ -1,7 +1,12 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { AppProviders } from '@/providers';
 import { AppShell } from '@/components/layout/AppShell';
 import './globals.css';
+
+export const viewport: Viewport = {
+  // Cream theme color so the mobile browser chrome never renders dark.
+  themeColor: '#FAF7F0',
+};
 
 export const metadata: Metadata = {
   title: {
@@ -39,7 +44,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased bg-cream text-ink">
         <AppProviders>
           <AppShell>
             {children}

@@ -1,20 +1,18 @@
 'use client';
-import { ThemeProvider } from 'next-themes';
 import { ReactQueryProvider } from './query-client';
 import { LenisProvider } from './lenis';
 
 /**
- * AppProviders — Unified root provider wrapping the entire app.
- * Order: Theme → Query → Lenis (smooth scroll).
+ * AppProviders — root provider wrapper.
+ *
+ * MVP is a single light cream/green theme. The previous next-themes
+ * `forcedTheme="dark"` wrapper has been removed so no `.dark` class is ever
+ * applied — this was a source of the brief dark-theme flash on first paint.
  */
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
-      <ReactQueryProvider>
-        <LenisProvider>
-          {children}
-        </LenisProvider>
-      </ReactQueryProvider>
-    </ThemeProvider>
+    <ReactQueryProvider>
+      <LenisProvider>{children}</LenisProvider>
+    </ReactQueryProvider>
   );
 }

@@ -2,71 +2,45 @@
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 /**
- * AuroraBackground — CSS-only animated aurora gradient mesh.
- * Renders behind all content as a fixed ambient layer.
- * Falls back to a static gradient for reduced-motion users.
+ * AuroraBackground — warm cream/green ambient layer that sits behind every page
+ * as the global base surface. MVP is light-only: there is intentionally no dark
+ * or navy variant here, so route transitions and first paint always rest on
+ * cream (never a black/navy flash). Individual pages still paint their own
+ * opaque cream surfaces on top; this is the safety net beneath them.
  */
 export function AuroraBackground() {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <div className="fixed inset-0 -z-30 overflow-hidden" aria-hidden="true">
-      {/* Base void gradient */}
-      <div className="absolute inset-0 bg-[var(--color-void)]" />
+    <div className="fixed inset-0 -z-30 overflow-hidden bg-cream" aria-hidden="true">
+      {/* Warm cream → ivory → beige base */}
+      <div className="absolute inset-0 bg-[radial-gradient(125%_125%_at_50%_0%,#FFFDF8_0%,#FAF7F0_46%,#F3EEE4_100%)]" />
 
-      {/* Radial gradient center glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,var(--color-abyss),transparent_70%)]" />
-
-      {/* Aurora orbs — animated blurred gradients */}
-      {!prefersReducedMotion ? (
+      {!prefersReducedMotion && (
         <>
-          {/* Primary blue-indigo orb — top right */}
+          {/* Soft sage bloom — top right */}
           <div
-            className="absolute -top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full opacity-[0.12] animate-aurora-shift"
+            className="absolute -top-1/4 -right-1/4 h-[760px] w-[760px] rounded-full opacity-[0.18] animate-aurora-shift"
             style={{
-              background: 'radial-gradient(circle, rgba(59,130,246,0.4) 0%, rgba(99,102,241,0.2) 40%, transparent 70%)',
+              background:
+                'radial-gradient(circle, rgba(168,195,160,0.45) 0%, rgba(191,227,192,0.20) 45%, transparent 70%)',
               backgroundSize: '200% 200%',
             }}
           />
 
-          {/* Violet-fuchsia orb — center left */}
+          {/* Pistachio bloom — center left */}
           <div
-            className="absolute top-1/3 -left-1/4 w-[600px] h-[600px] rounded-full opacity-[0.08] animate-aurora-shift"
+            className="absolute left-[-15%] top-1/3 h-[620px] w-[620px] rounded-full opacity-[0.14] animate-aurora-shift"
             style={{
-              background: 'radial-gradient(circle, rgba(139,92,246,0.35) 0%, rgba(217,70,239,0.15) 45%, transparent 70%)',
+              background:
+                'radial-gradient(circle, rgba(205,231,176,0.40) 0%, rgba(168,195,160,0.16) 50%, transparent 70%)',
               backgroundSize: '200% 200%',
-              animationDelay: '-3s',
-              animationDuration: '12s',
-            }}
-          />
-
-          {/* Cyan accent orb — bottom */}
-          <div
-            className="absolute -bottom-1/4 left-1/3 w-[500px] h-[500px] rounded-full opacity-[0.06] animate-aurora-shift"
-            style={{
-              background: 'radial-gradient(circle, rgba(34,211,238,0.3) 0%, rgba(59,130,246,0.1) 50%, transparent 70%)',
-              backgroundSize: '200% 200%',
-              animationDelay: '-6s',
-              animationDuration: '15s',
+              animationDelay: '-4s',
+              animationDuration: '14s',
             }}
           />
         </>
-      ) : (
-        /* Static fallback for reduced motion */
-        <div className="absolute inset-0 bg-gradient-mesh opacity-[0.08]" />
       )}
-
-      {/* Very subtle grid overlay for spatial depth */}
-      <div
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(120,160,255,0.15) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(120,160,255,0.15) 1px, transparent 1px)
-          `,
-          backgroundSize: '60px 60px',
-        }}
-      />
     </div>
   );
 }

@@ -104,4 +104,63 @@ describe('Audit Engine', () => {
     expect(copilotResult?.savings.savingsPerMonth).toBe('9.00'); // 19 - 10
   });
 
+  it('7. Scenario A — over-provisioned seats (3 engineers, 20 Claude Team seats)', () => {
+    const input: AuditInput = {
+      tools: [
+        { toolId: 'claude', plan: 'Team', seats: 20, monthlySpend: 600 }
+      ],
+      global: { teamSize: 3, useCase: 'mixed' }
+    };
+
+    const result = runAuditEngine(input);
+    const r = result.toolResults[0];
+    if (!r) throw new Error('Result missing');
+
+    // Paying for 20 seats with only 3 engineers must be flagged, not "optimal".
+    expect(r.status).toBe('overspending');
+    expect(r.recommendation.recommendedAction).toContain('Reduce Claude');
+    expect(r.recommendation.recommendedAction).toContain('3 seats');
+    // 17 surplus seats @ $30/seat ($600 / 20) = $510/mo.
+    expect(r.savings.savingsPerMonth).toBe('510.00');
+    expect(result.totalSavingsAnnually).toBe((510 * 12).toFixed(2));
+  });
+
+  it('8. Scenario B — correctly sized (5 engineers, Claude Pro, 5 seats) stays optimal', () => {
+    const input: AuditInput = {
+      tools: [
+        { toolId: 'claude', plan: 'Pro', seats: 5, monthlySpend: 100 }
+      ],
+      global: { teamSize: 5, useCase: 'mixed' }
+    };
+
+    const result = runAuditEngine(input);
+    const r = result.toolResults[0];
+    if (!r) throw new Error('Result missing');
+
+    // Seats match headcount and Pro is the base paid tier — no manufactured savings.
+    expect(r.status).toBe('optimal');
+    expect(r.savings.savingsPerMonth).toBe('0.00');
+  });
+
+  it('9. Scenario C — context-aware recommendation (10 engineers, ChatGPT Team, 10 seats)', () => {
+    const input: AuditInput = {
+      tools: [
+        { toolId: 'chatgpt', plan: 'Team', seats: 10, monthlySpend: 300 }
+      ],
+      global: { teamSize: 10, useCase: 'mixed' }
+    };
+
+    const result = runAuditEngine(input);
+    const r = result.toolResults[0];
+    if (!r) throw new Error('Result missing');
+
+    // Seats are correctly sized, so the engine must give a context-aware rec
+    // (annual billing) rather than a generic "Keep current plan."
+    expect(r.status).not.toBe('optimal');
+    expect(r.recommendation.recommendedAction).not.toBe('Keep current plan.');
+    expect(r.recommendation.recommendedAction).toContain('annual billing');
+    // 10 seats × ($30 monthly − $25 annual) = $50/mo.
+    expect(r.savings.savingsPerMonth).toBe('50.00');
+  });
+
 });
