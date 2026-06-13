@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { greenRamp, palette } from '@/lib/theme/colors';
@@ -83,13 +84,20 @@ function FloatingPaths({
             fill="none"
             initial={{ pathLength: 0.3, opacity: 0 }}
             animate={{
-              pathLength: 1,
-              opacity: [0, p.opacity, p.opacity * 0.7],
+              // Every animated value is a SEAMLESS keyframe array — the first
+              // and last entries match (pathLength 0.3→0.3, opacity, pathOffset
+              // 0→0) — so each loop boundary is continuous. The previous
+              // opacity ramp from 0 made the paths fade fully out at the start
+              // of every cycle, which read as the "dead time" between cycles.
+              pathLength: [0.3, 1, 0.3],
+              opacity: [p.opacity * 0.5, p.opacity, p.opacity * 0.5],
               pathOffset: [0, 1, 0],
             }}
             transition={{
               // Deterministic (no Math.random) to avoid hydration drift.
-              duration: 26 + (p.id % 6) * 3,
+              // 11–16s: alive and continuous without feeling frantic
+              // (was 26–41s, which left long, lifeless gaps).
+              duration: 11 + (p.id % 6),
               repeat: Infinity,
               repeatType: 'loop',
               ease: 'easeInOut',
@@ -108,13 +116,35 @@ export function FloatingPathsBackground({
 }) {
   const reduce = useReducedMotion();
 
+  // ── Initialization fix (Phase 6.4D) ──
+  // The paths are server-rendered on first page load, then HYDRATED. Framer
+  // Motion adopts the SSR markup as its baseline during hydration and does not
+  // restart the looping mount animation, so the paths stay frozen at their
+  // `initial` state. A route change (PageTransitionLayer keys its content by
+  // pathname under <AnimatePresence>) unmounts and FRESHLY client-mounts this
+  // subtree — a fresh mount, not hydration — which is why navigating away and
+  // back makes the animation suddenly start.
+  //
+  // Gating the field behind a post-mount flag means the motion paths are never
+  // hydrated: they always initialise as a fresh client mount (identical to the
+  // navigation case that already works), so the animation starts immediately on
+  // first load, on refresh, and on hard refresh. The empty wrapper renders
+  // identically on server and first client render, so there is no hydration
+  // mismatch; the paths then fade in gracefully a frame later.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   return (
     <div
       aria-hidden="true"
       className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}
     >
-      <FloatingPaths position={1} reduce={reduce} />
-      <FloatingPaths position={-1} reduce={reduce} />
+      {mounted && (
+        <>
+          <FloatingPaths position={1} reduce={reduce} />
+          <FloatingPaths position={-1} reduce={reduce} />
+        </>
+      )}
     </div>
   );
 }
