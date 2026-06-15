@@ -39,6 +39,7 @@ export function PageTransitionLayer({ children }: { children: React.ReactNode })
     // route changes (new `key`) animate normally.
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
+        data-page-transition
         key={pathname}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}

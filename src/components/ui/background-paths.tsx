@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, PresenceContext } from 'framer-motion';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { greenRamp, palette } from '@/lib/theme/colors';
 
@@ -29,13 +29,10 @@ interface PathDef {
 
 function buildPaths(position: number): PathDef[] {
   return Array.from({ length: PATHS_PER_SIDE }, (_, i) => {
-    const d = `M-${380 - i * 5 * position} -${189 + i * 6}C-${
-      380 - i * 5 * position
-    } -${189 + i * 6} -${312 - i * 5 * position} ${216 - i * 6} ${
-      152 - i * 5 * position
-    } ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${
-      684 - i * 5 * position
-    } ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`;
+    const d = `M-${380 - i * 5 * position} -${189 + i * 6}C-${380 - i * 5 * position
+      } -${189 + i * 6} -${312 - i * 5 * position} ${216 - i * 6} ${152 - i * 5 * position
+      } ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${684 - i * 5 * position
+      } ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`;
 
     return {
       id: i,
@@ -116,21 +113,25 @@ export function FloatingPathsBackground({
 }) {
   const reduce = useReducedMotion();
 
-  // ── Initialization fix (Phase 6.4D) ──
-  // The paths are server-rendered on first page load, then HYDRATED. Framer
-  // Motion adopts the SSR markup as its baseline during hydration and does not
-  // restart the looping mount animation, so the paths stay frozen at their
-  // `initial` state. A route change (PageTransitionLayer keys its content by
-  // pathname under <AnimatePresence>) unmounts and FRESHLY client-mounts this
-  // subtree — a fresh mount, not hydration — which is why navigating away and
-  // back makes the animation suddenly start.
+  // ── Animation-timeline fix (Phase 6.4D) — the real root cause ──
+  // This field renders deep inside <AppShell>'s PageTransitionLayer, which wraps
+  // every route in <AnimatePresence initial={false}>. In Framer Motion,
+  // `initial={false}` is broadcast to ALL descendants via PresenceContext: any
+  // motion.* present on that AnimatePresence's first commit reads
+  // `PresenceContext.initial === false` and renders straight at its `animate`
+  // target WITHOUT creating an animation timeline (verified in the browser:
+  // motion.path[i].getAnimations() === [], elements sit at their animate-state
+  // opacity, never the initial opacity:0). A route change mounts a NEW keyed
+  // AnimatePresence child whose presence `initial` is not false, which is why
+  // navigating away and back makes the paths suddenly animate.
   //
-  // Gating the field behind a post-mount flag means the motion paths are never
-  // hydrated: they always initialise as a fresh client mount (identical to the
-  // navigation case that already works), so the animation starts immediately on
-  // first load, on refresh, and on hard refresh. The empty wrapper renders
-  // identically on server and first client render, so there is no hydration
-  // mismatch; the paths then fade in gracefully a frame later.
+  // Resetting PresenceContext to `null` for this subtree detaches the paths from
+  // that inherited `initial={false}`, so they run their normal mount animation
+  // and a real timeline is created on first load — no refresh, no navigation.
+  //
+  // The post-mount flag is retained so the motion paths always initialise as a
+  // clean client mount; the empty wrapper renders identically on server and
+  // first client render, so there is no hydration mismatch.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -140,10 +141,12 @@ export function FloatingPathsBackground({
       className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}
     >
       {mounted && (
-        <>
-          <FloatingPaths position={1} reduce={reduce} />
-          <FloatingPaths position={-1} reduce={reduce} />
-        </>
+        <PresenceContext.Provider value={null}>
+          <>
+            <FloatingPaths position={1} reduce={reduce} />
+            <FloatingPaths position={-1} reduce={reduce} />
+          </>
+        </PresenceContext.Provider>
       )}
     </div>
   );
