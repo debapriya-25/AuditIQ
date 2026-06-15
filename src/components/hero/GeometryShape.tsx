@@ -1,18 +1,26 @@
 'use client';
 
-import { motion, useTransform, type MotionValue } from 'framer-motion';
+import {
+  motion,
+  useTransform,
+  type MotionValue,
+  type TargetAndTransition,
+  type Transition,
+} from 'framer-motion';
 import { GEOMETRY_SHAPES, type GeometryType } from './geometry-shapes';
 
 /**
  * GeometryShape — a single reusable wireframe polyhedron (Phase 6.2).
  *
- * Motion model (premium + intentional, no perpetual motion):
+ * Motion model (premium + intentional):
  *   Default → static, with a slight resting rotation offset for organic feel
+ *   Ambient → opt-in (`ambient`) slow drift loop — off for the hero, on for the
+ *             audit atmosphere where gentle floating is wanted
  *   Pointer → subtle proximity parallax from the parent layer (reactive)
  *   Hover   → slow CSS-3D rotate + gentle spring + subtle scale (0.8–1.5s)
  *   Exit    → springs smoothly back to its resting position
  *
- * No spinning loops, no float loop, NO glow/blur. Reduced-motion → fully static.
+ * No spinning loops, NO glow/blur. Reduced-motion → fully static.
  */
 
 export interface GeometryShapeProps {
@@ -31,6 +39,13 @@ export interface GeometryShapeProps {
   restRotate?: number;
   /** Stroke/vertex opacity override (0..1). Defaults to the existing look. */
   opacity?: number | undefined;
+  /**
+   * Opt-in slow ambient drift loop. Off by default so the hero geometry stays
+   * static at rest; the audit atmosphere enables it. Ignored under reduced motion.
+   */
+  ambient?: boolean;
+  /** Stagger (s) so ambient shapes don't drift in lockstep. */
+  ambientDelay?: number;
   reduce?: boolean;
   className?: string;
 }
@@ -45,6 +60,8 @@ export function GeometryShape({
   depth = 16,
   restRotate = 0,
   opacity,
+  ambient = false,
+  ambientDelay = 0,
   reduce = false,
   className = '',
 }: GeometryShapeProps) {
@@ -61,6 +78,22 @@ export function GeometryShape({
   const x = useTransform(pointerX, [-1, 1], [-depth, depth]);
   const y = useTransform(pointerY, [-1, 1], [-depth, depth]);
 
+  // Opt-in slow ambient drift. Spread so the props are simply absent when off
+  // (exactOptionalPropertyTypes forbids passing `undefined` to motion props).
+  const ambientProps =
+    !reduce && ambient
+      ? {
+          animate: { y: [0, -9, 0, 7, 0], x: [0, 4, 0, -5, 0] } as TargetAndTransition,
+          transition: {
+            duration: 19,
+            repeat: Infinity,
+            repeatType: 'loop',
+            ease: 'easeInOut',
+            delay: ambientDelay,
+          } as Transition,
+        }
+      : {};
+
   return (
     <motion.div
       aria-hidden="true"
@@ -72,8 +105,8 @@ export function GeometryShape({
         ...(reduce ? {} : { x, y }),
       }}
     >
-      {/* Perspective wrapper (static) */}
-      <div className="h-full w-full" style={{ perspective: 700 }}>
+      {/* Perspective wrapper — also carries the opt-in slow ambient drift */}
+      <motion.div className="h-full w-full" style={{ perspective: 700 }} {...ambientProps}>
         {/* 3D hover rotor — static at rest, reacts only to hover */}
         <motion.div
           className="h-full w-full"
@@ -131,7 +164,7 @@ export function GeometryShape({
             ))}
           </svg>
         </motion.div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }

@@ -30,6 +30,7 @@ import {
   type AuditFormValues,
 } from './form-schema';
 import { ProgressSteps } from './ProgressSteps';
+import { AuditAtmosphere } from './AuditAtmosphere';
 import { DraftBanner } from './DraftBanner';
 import { UseCaseSelector } from './UseCaseSelector';
 import { ToolRow, type ToolRowErrors } from './ToolRow';
@@ -312,6 +313,8 @@ export function AuditForm() {
 
   return (
     <section className="relative isolate -mt-16 min-h-screen overflow-hidden bg-cream bg-[radial-gradient(125%_125%_at_50%_8%,#FFFDF8_0%,#FAF7F0_46%,#F3EEE4_100%)] px-6 pb-44 pt-24 lg:pb-24">
+      <AuditAtmosphere />
+
       <Toaster
         position="top-right"
         toastOptions={{
@@ -324,7 +327,7 @@ export function AuditForm() {
         }}
       />
 
-      <div className="mx-auto w-full max-w-[1100px]">
+      <div className="relative z-10 mx-auto w-full max-w-[1100px]">
         {/* Header */}
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 16 }}
