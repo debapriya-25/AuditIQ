@@ -7,9 +7,16 @@ interface AnimatedNumberProps {
   value: number;
   prefix?: string;
   className?: string;
+  /** Start delay (s). Stagger multiple counters by passing increasing values. */
+  delay?: number;
 }
 
-export function AnimatedNumber({ value, prefix = '$', className }: AnimatedNumberProps) {
+export function AnimatedNumber({
+  value,
+  prefix = '$',
+  className,
+  delay = 0.3,
+}: AnimatedNumberProps) {
   const count = useMotionValue(0);
   const rounded = useTransform(count, (v) => Math.round(v).toLocaleString());
   const prefersReducedMotion = useReducedMotion();
@@ -23,10 +30,10 @@ export function AnimatedNumber({ value, prefix = '$', className }: AnimatedNumbe
     const controls = animate(count, value, {
       duration: 1.8,
       ease: [0.16, 1, 0.3, 1],  // Custom expo-out easing
-      delay: 0.3,
+      delay,
     });
     return controls.stop;
-  }, [value, prefersReducedMotion, count]);
+  }, [value, prefersReducedMotion, count, delay]);
 
   return (
     <span className={`font-display tabular-nums ${className || ''}`}>

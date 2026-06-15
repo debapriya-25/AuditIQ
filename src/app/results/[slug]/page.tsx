@@ -12,7 +12,10 @@ import { ProgressSteps } from '@/components/audit/ProgressSteps';
 import { SavingsHero } from '@/components/results/SavingsHero';
 import { ToolResultCard } from '@/components/results/ToolResultCard';
 import { ShareSection } from '@/components/results/ShareSection';
+import { AISummaryCard } from '@/components/results/AISummaryCard';
+import { ResultsAtmosphere } from '@/components/results/ResultsAtmosphere';
 import { ResultsEmptyState } from '@/components/results/ResultsEmptyState';
+import { SectionReveal } from '@/components/ui/SectionReveal';
 
 // Slug lookups are per-request and hit the database — never prerender.
 export const dynamic = 'force-dynamic';
@@ -117,6 +120,13 @@ export default async function ResultsPage({
 
   const monthly = Number(engine.totalSavingsMonthly) || 0;
   const annual = Number(engine.totalSavingsAnnually) || 0;
+  // Total current spend isn't a stored/engine field — derive it (presentation
+  // only) by summing each tool's current monthly spend.
+  const monthlySpend = engine.toolResults.reduce(
+    (sum, t) => sum + (Number(t.savings.currentMonthlySpend) || 0),
+    0
+  );
+  const annualSpend = monthlySpend * 12;
   const useCaseLabel =
     USE_CASES.find((u) => u.value === data.useCase)?.label ?? 'Mixed';
   const summary =
@@ -126,15 +136,19 @@ export default async function ResultsPage({
 
   return (
     <section className="relative isolate -mt-16 min-h-screen overflow-hidden bg-cream bg-[radial-gradient(125%_125%_at_50%_6%,#FFFDF8_0%,#FAF7F0_46%,#F3EEE4_100%)] px-6 pb-24 pt-24">
-      <div className="mx-auto w-full max-w-[840px]">
+      <ResultsAtmosphere />
+
+      <div className="relative z-10 mx-auto w-full max-w-[840px]">
         <div className="flex justify-center">
           <ProgressSteps current={2} />
         </div>
 
         <div className="mt-10 space-y-6">
           <SavingsHero
-            monthly={monthly}
-            annual={annual}
+            monthlySpend={monthlySpend}
+            annualSpend={annualSpend}
+            savingsMonthly={monthly}
+            savingsAnnual={annual}
             toolCount={engine.toolResults.length}
             useCaseLabel={useCaseLabel}
             teamSize={data.teamSize}
@@ -145,18 +159,13 @@ export default async function ResultsPage({
               Per-tool breakdown
             </h2>
             {engine.toolResults.map((finding, i) => (
-              <ToolResultCard key={`${finding.toolId}-${i}`} finding={finding} />
+              <SectionReveal key={`${finding.toolId}-${i}`} delay={i * 0.06}>
+                <ToolResultCard finding={finding} />
+              </SectionReveal>
             ))}
           </div>
 
-          <section className="rounded-2xl border border-sap/25 border-l-4 border-l-sap bg-mint/20 p-6 sm:p-7">
-            <div className="text-xs font-medium uppercase tracking-[0.12em] text-sap">
-              AI Summary
-            </div>
-            <p className="mt-3 text-base font-light leading-relaxed text-ink/80">
-              {summary}
-            </p>
-          </section>
+          <AISummaryCard summary={summary} />
 
           <ShareSection slug={audit.publicSlug} />
         </div>

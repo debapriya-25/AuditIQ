@@ -40,6 +40,12 @@ export interface GeometryShapeProps {
   /** Stroke/vertex opacity override (0..1). Defaults to the existing look. */
   opacity?: number | undefined;
   /**
+   * Front-edge stroke width in viewBox units (back edges derive from it). Default
+   * 1.5 preserves the original look; raise it to strengthen stroke presence
+   * without inflating the fill (vertex dots stay fixed).
+   */
+  strokeWidth?: number;
+  /**
    * Opt-in slow ambient drift loop. Off by default so the hero geometry stays
    * static at rest; the audit atmosphere enables it. Ignored under reduced motion.
    */
@@ -60,6 +66,7 @@ export function GeometryShape({
   depth = 16,
   restRotate = 0,
   opacity,
+  strokeWidth = 1.5,
   ambient = false,
   ambientDelay = 0,
   reduce = false,
@@ -132,7 +139,7 @@ export function GeometryShape({
                 x2={e[2]}
                 y2={e[3]}
                 stroke={color}
-                strokeWidth={1.25}
+                strokeWidth={strokeWidth - 0.25}
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
                 opacity={backEdgeOpacity}
@@ -146,7 +153,7 @@ export function GeometryShape({
                 x2={e[2]}
                 y2={e[3]}
                 stroke={color}
-                strokeWidth={1.5}
+                strokeWidth={strokeWidth}
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
                 opacity={edgeOpacity}
