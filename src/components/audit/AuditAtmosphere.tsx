@@ -11,7 +11,6 @@ import {
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { GeometryShape } from '@/components/hero/GeometryShape';
 import type { GeometryType } from '@/components/hero/geometry-shapes';
-import { FloatingPathsBackground } from '@/components/ui/background-paths';
 import { palette } from '@/lib/theme/colors';
 
 /**
@@ -19,8 +18,11 @@ import { palette } from '@/lib/theme/colors';
  *
  * Sits behind the form (never over it) as layered, low-distraction depth:
  *   1. Soft floating mesh — sage / mint / pistachio radial blooms, slow drift
- *   2. Very-low-opacity animated paths (shared FloatingPathsBackground)
- *   3. Floating wireframe polyhedra — slow ambient drift + spring pointer parallax
+ *   2. Floating wireframe polyhedra — slow ambient drift + spring pointer parallax
+ *
+ * There is intentionally NO flowing line/path animation here: the audit form does
+ * NOT reuse the landing hero's FloatingPathsBackground. The bottom-left space that
+ * field used to occupy is filled with extra wireframe shapes instead (same system).
  *
  * Palette is restricted to sage / mint / pistachio (no blue, no neon). Motion is
  * Framer Motion only — spring-based for pointer reactivity, gentle easeInOut for
@@ -85,6 +87,14 @@ const SHAPES: AtmosphereShape[] = [
   { type: 'prism',        size: 88,  color: palette.mint,      opacity: 0.34, position: { top: '53%',    right: '1%'  }, depth: 16, restRotate: -10, ambientDelay: 3.3 },
   { type: 'cube',         size: 70,  color: palette.pistachio, opacity: 0.30, position: { bottom: '10%', right: '5%'  }, depth: 12, restRotate: 6,   ambientDelay: 5   },
   { type: 'geosphere',    size: 104, color: palette.sage,      opacity: 0.34, position: { bottom: '25%', right: '14%' }, depth: 14, restRotate: 0,   ambientDelay: 2   },
+
+  // ── Bottom-left fill — replaces the removed flowing-path field. Same wireframe
+  //    language, palette, and interactivity; small, faint, and spread down the
+  //    lower-left so the corner reads balanced without crowding the form or
+  //    pulling focus. ──
+  { type: 'octahedron',   size: 92,  color: palette.sage,      opacity: 0.38, position: { bottom: '34%', left: '5%'  }, depth: 18, restRotate: -8,  ambientDelay: 1.8 },
+  { type: 'geosphere',    size: 86,  color: palette.mint,      opacity: 0.32, position: { bottom: '22%', left: '-4%' }, depth: 13, restRotate: 0,   ambientDelay: 5.2 },
+  { type: 'cube',         size: 66,  color: palette.pistachio, opacity: 0.30, position: { bottom: '6%',  left: '7%'  }, depth: 11, restRotate: 6,   ambientDelay: 3.6 },
 ];
 
 export function AuditAtmosphere() {
@@ -156,10 +166,7 @@ export function AuditAtmosphere() {
         );
       })}
 
-      {/* 2 — Very-low-opacity animated paths (shared with the hero) */}
-      <FloatingPathsBackground />
-
-      {/* 3 — Floating wireframes — desktop only, where the side whitespace lives */}
+      {/* 2 — Floating wireframes — desktop only, where the side whitespace lives */}
       <div className="absolute inset-0 hidden lg:block">
         {SHAPES.map((s, i) => (
           <GeometryShape
